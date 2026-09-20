@@ -13,6 +13,7 @@ from app.api.routes import (
     health,
     incidents,
     investigations,
+    llm_settings,
     logs,
     rag,
     reports,
@@ -63,6 +64,7 @@ app.include_router(threat_intel.router)
 app.include_router(scans.router)
 app.include_router(reports.router)
 app.include_router(health.router)
+app.include_router(llm_settings.router)
 
 
 @app.get("/")

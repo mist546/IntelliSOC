@@ -1,6 +1,6 @@
-# Mini-SOC
+# IntelliSOC
 
-**An Agentic AI-Based Mini-SOC for Automated Tier-1 Security Alert Triage,
+**An Agentic AI-Based IntelliSOC for Automated Tier-1 Security Alert Triage,
 Investigation, Threat Intelligence Enrichment, and Response Recommendation
 using Local LLMs and RAG.**
 

@@ -1,42 +1,34 @@
 import { ChangeEvent, DragEvent, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { UploadCloud } from 'lucide-react'
 import { PageHeader } from '../components/PageHeader'
 import { Card } from '../components/Card'
 import { InlineSpinner } from '../components/LoadingSpinner'
 import { ErrorBanner, EmptyState } from '../components/ErrorBanner'
 import { SortableTh } from '../components/SortableTh'
 import { TableSkeleton } from '../components/TableSkeleton'
-import type { LogEvent, LogUploadResult } from '../types'
-import { getApiErrorMessage, getLogs, uploadLogFile } from '../services/api'
+import type { LogEvent } from '../types'
+import { getApiErrorMessage } from '../services/client'
 import { formatDateTime } from '../utils/format'
 import { useToast } from '../hooks/useToast'
 import { useSortableData } from '../hooks/useSortableData'
+import { useLogsQuery, useUploadLog } from '../hooks/queries/useLogs'
+
+const SUPPORTED_FORMATS = ['auth.log', 'Apache', 'Nginx', 'Syslog', 'CSV', 'JSON']
 
 export default function Logs() {
   const toast = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [logs, setLogs] = useState<LogEvent[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [sourceIp, setSourceIp] = useState(searchParams.get('source_ip') ?? '')
   const [eventType, setEventType] = useState(searchParams.get('event_type') ?? '')
-
   const [dragOver, setDragOver] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
-  const [uploadResult, setUploadResult] = useState<LogUploadResult | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  function load() {
-    setLoading(true)
-    setError(null)
-    getLogs({ source_ip: sourceIp || undefined, event_type: eventType || undefined, limit: 200 })
-      .then(setLogs)
-      .catch((err) => setError(getApiErrorMessage(err, 'Failed to load logs.')))
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(load, [sourceIp, eventType])
+  const { data: logs = [], isLoading, isError, error, refetch } = useLogsQuery({
+    source_ip: sourceIp || undefined,
+    event_type: eventType || undefined,
+  })
+  const upload = useUploadLog()
 
   const { sorted, sortKey, sortDir, requestSort } = useSortableData<LogEvent>(logs, {
     timestamp: (l) => new Date(l.timestamp).getTime(),
@@ -60,22 +52,13 @@ export default function Logs() {
   }, [sourceIp, eventType])
 
   async function handleUpload(file: File) {
-    setUploading(true)
-    setUploadError(null)
-    setUploadResult(null)
     try {
-      const result = await uploadLogFile(file)
-      setUploadResult(result)
+      const result = await upload.mutateAsync(file)
       toast.success(
         `${result.filename}: ${result.events_created} event(s), ${result.alerts_created} alert(s), ${result.incidents_created} incident(s) created`,
       )
-      load()
     } catch (err) {
-      const message = getApiErrorMessage(err, 'Failed to upload log file.')
-      setUploadError(message)
-      toast.error(message)
-    } finally {
-      setUploading(false)
+      toast.error(getApiErrorMessage(err, 'Failed to upload log file.'))
     }
   }
 
@@ -92,6 +75,9 @@ export default function Logs() {
     if (file) handleUpload(file)
   }
 
+  const uploadResult = upload.data
+  const uploadError = upload.isError ? getApiErrorMessage(upload.error, 'Failed to upload log file.') : null
+
   return (
     <div>
       <PageHeader title="Log Events" description="Ingested events from collector agents and manual uploads" />
@@ -107,7 +93,7 @@ export default function Logs() {
             onDrop={onDrop}
             onClick={() => fileInputRef.current?.click()}
             className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors ${
-              dragOver ? 'border-sky-500 bg-sky-500/5' : 'border-slate-700 hover:border-slate-600'
+              dragOver ? 'border-brand-500 bg-brand-500/5' : 'border-slate-700 hover:border-slate-600'
             }`}
           >
             <input
@@ -117,15 +103,22 @@ export default function Logs() {
               className="hidden"
               onChange={onFileInputChange}
             />
-            {uploading ? (
+            {upload.isPending ? (
               <div className="flex items-center gap-2 text-slate-300">
                 <InlineSpinner />
                 Uploading and parsing...
               </div>
             ) : (
               <>
+                <UploadCloud className="mb-2 h-8 w-8 text-slate-600" />
                 <p className="text-sm font-medium text-slate-300">Drag and drop a log file here, or click to browse</p>
-                <p className="mt-1 text-xs text-slate-500">Supported: .log, .txt, .csv, .json</p>
+                <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+                  {SUPPORTED_FORMATS.map((f) => (
+                    <span key={f} className="rounded bg-slate-800 px-2 py-0.5 text-[11px] text-slate-400">
+                      {f}
+                    </span>
+                  ))}
+                </div>
               </>
             )}
           </div>
@@ -177,10 +170,10 @@ export default function Logs() {
           <span className="text-xs text-slate-500">{logs.length} event(s)</span>
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <TableSkeleton columns={8} />
-        ) : error ? (
-          <ErrorBanner message={error} onRetry={load} />
+        ) : isError ? (
+          <ErrorBanner message={getApiErrorMessage(error, 'Failed to load logs.')} onRetry={() => refetch()} />
         ) : logs.length === 0 ? (
           <EmptyState message="No log events match the current filters." />
         ) : (

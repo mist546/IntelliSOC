@@ -53,7 +53,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               <button
                 onClick={() => close(true)}
                 className={`rounded-md px-3 py-1.5 text-sm font-semibold text-white ${
-                  pending.tone === 'danger' ? 'bg-red-600 hover:bg-red-500' : 'bg-sky-600 hover:bg-sky-500'
+                  pending.tone === 'danger' ? 'bg-red-600 hover:bg-red-500' : 'bg-brand-600 hover:bg-brand-500'
                 }`}
               >
                 {pending.confirmLabel ?? 'Confirm'}

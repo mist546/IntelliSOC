@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ScanSearch } from 'lucide-react'
 import { PageHeader } from '../components/PageHeader'
 import { Card } from '../components/Card'
 import { LoadingSpinner, InlineSpinner } from '../components/LoadingSpinner'
@@ -7,9 +8,10 @@ import { ErrorBanner, EmptyState, WarningBanner } from '../components/ErrorBanne
 import { SeverityBadge } from '../components/SeverityBadge'
 import { StatusBadge } from '../components/StatusBadge'
 import { CopyButton } from '../components/CopyButton'
-import type { Alert, AlertStatus } from '../types'
-import { getAlert, getApiErrorMessage, investigateAlert, updateAlertStatus } from '../services/api'
+import type { AlertStatus } from '../types'
+import { getApiErrorMessage } from '../services/client'
 import { formatDateTime, formatPercent } from '../utils/format'
+import { useAlertQuery, useInvestigateAlert, useUpdateAlertStatus } from '../hooks/queries/useAlerts'
 import { useToast } from '../hooks/useToast'
 import { useConfirm } from '../hooks/useConfirm'
 
@@ -21,28 +23,13 @@ export default function AlertDetail() {
   const navigate = useNavigate()
   const toast = useToast()
   const confirm = useConfirm()
-  const [alert, setAlert] = useState<Alert | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [statusUpdating, setStatusUpdating] = useState(false)
-  const [investigating, setInvestigating] = useState(false)
+  const { data: alert, isLoading, isError, error, refetch } = useAlertQuery(id)
+  const updateStatus = useUpdateAlertStatus()
+  const investigate = useInvestigateAlert()
   const [investigateError, setInvestigateError] = useState<string | null>(null)
-
-  function load() {
-    if (!id) return
-    setLoading(true)
-    setError(null)
-    getAlert(id)
-      .then(setAlert)
-      .catch((err) => setError(getApiErrorMessage(err, 'Failed to load alert.')))
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(load, [id])
 
   async function handleStatusChange(newStatus: AlertStatus) {
     if (!id) return
-
     if (CONFIRM_BEFORE.includes(newStatus)) {
       const ok = await confirm({
         title: `Mark alert as ${newStatus.replace('_', ' ')}?`,
@@ -55,41 +42,31 @@ export default function AlertDetail() {
       })
       if (!ok) return
     }
-
-    setStatusUpdating(true)
     try {
-      const updated = await updateAlertStatus(id, newStatus)
-      setAlert(updated)
+      await updateStatus.mutateAsync({ id, status: newStatus })
       toast.success(`Status changed to ${newStatus.replace('_', ' ')}`)
     } catch (err) {
-      const message = getApiErrorMessage(err, 'Failed to update status.')
-      setError(message)
-      toast.error(message)
-    } finally {
-      setStatusUpdating(false)
+      toast.error(getApiErrorMessage(err, 'Failed to update status.'))
     }
   }
 
   async function handleInvestigate() {
     if (!id) return
-    setInvestigating(true)
     setInvestigateError(null)
     toast.info('AI investigation started - this can take up to a couple of minutes on local hardware.')
     try {
-      const investigation = await investigateAlert(id)
+      const investigation = await investigate.mutateAsync(id)
       toast.success('Investigation completed - opening results.')
       navigate(`/investigations/${investigation.id}`)
     } catch (err) {
       const message = getApiErrorMessage(err, 'Investigation failed to complete.')
       setInvestigateError(message)
       toast.error(message)
-    } finally {
-      setInvestigating(false)
     }
   }
 
-  if (loading) return <LoadingSpinner label="Loading alert..." />
-  if (error) return <ErrorBanner message={error} onRetry={load} />
+  if (isLoading) return <LoadingSpinner label="Loading alert..." />
+  if (isError) return <ErrorBanner message={getApiErrorMessage(error, 'Failed to load alert.')} onRetry={() => refetch()} />
   if (!alert) return <EmptyState message="Alert not found." />
 
   return (
@@ -100,16 +77,16 @@ export default function AlertDetail() {
         actions={
           <button
             onClick={handleInvestigate}
-            disabled={investigating}
+            disabled={investigate.isPending}
             className="flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {investigating && <InlineSpinner />}
-            {investigating ? 'Investigating...' : 'Investigate with AI'}
+            {investigate.isPending ? <InlineSpinner /> : <ScanSearch className="h-4 w-4" />}
+            {investigate.isPending ? 'Investigating...' : 'Investigate with AI'}
           </button>
         }
       />
 
-      {investigating && (
+      {investigate.isPending && (
         <div className="mb-4">
           <WarningBanner
             title="AI investigation running"
@@ -156,7 +133,7 @@ export default function AlertDetail() {
               <>
                 <dt className="text-slate-500">Incident</dt>
                 <dd>
-                  <Link to={`/incidents/${alert.incident_id}`} className="text-sky-400 hover:underline">
+                  <Link to={`/incidents/${alert.incident_id}`} className="text-brand-400 hover:underline">
                     INC-{alert.incident_id}
                   </Link>
                 </dd>
@@ -178,10 +155,10 @@ export default function AlertDetail() {
               <button
                 key={s}
                 onClick={() => handleStatusChange(s)}
-                disabled={statusUpdating || alert.status === s}
+                disabled={updateStatus.isPending || alert.status === s}
                 className={`rounded-md border px-3 py-2 text-left text-sm transition-colors ${
                   alert.status === s
-                    ? 'border-sky-500/60 bg-sky-500/10 text-sky-300'
+                    ? 'border-brand-500/60 bg-brand-500/10 text-brand-300'
                     : 'border-slate-700 text-slate-300 hover:bg-slate-800'
                 } disabled:cursor-not-allowed disabled:opacity-60`}
               >
@@ -193,7 +170,7 @@ export default function AlertDetail() {
       </div>
 
       <div className="mt-4">
-        <Card title="Evidence">
+        <Card title="Observed Evidence">
           {alert.evidence && alert.evidence.length > 0 ? (
             <ul className="list-inside list-disc space-y-1 text-sm text-slate-300">
               {alert.evidence.map((e, i) => (

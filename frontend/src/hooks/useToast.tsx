@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { CircleCheck, CircleX, Info } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 type ToastType = 'success' | 'error' | 'info'
 
@@ -20,13 +22,13 @@ const ToastContext = createContext<ToastContextValue | null>(null)
 const STYLES: Record<ToastType, string> = {
   success: 'border-emerald-500/50 bg-emerald-500/10 text-emerald-200',
   error: 'border-red-500/50 bg-red-500/10 text-red-200',
-  info: 'border-sky-500/50 bg-sky-500/10 text-sky-200',
+  info: 'border-brand-500/50 bg-brand-500/10 text-brand-200',
 }
 
-const ICONS: Record<ToastType, string> = {
-  success: '✓',
-  error: '✕',
-  info: 'ℹ',
+const ICONS: Record<ToastType, LucideIcon> = {
+  success: CircleCheck,
+  error: CircleX,
+  info: Info,
 }
 
 const DISMISS_AFTER_MS = 5000
@@ -58,13 +60,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       <div className="pointer-events-none fixed right-4 top-4 z-50 flex w-full max-w-sm flex-col gap-2">
-        {toasts.map((t) => (
+        {toasts.map((t) => {
+          const Icon = ICONS[t.type]
+          return (
           <div
             key={t.id}
             role="status"
             className={`pointer-events-auto flex items-start gap-2 rounded-md border px-3 py-2.5 text-sm shadow-lg backdrop-blur-sm animate-[toast-in_0.15s_ease-out] ${STYLES[t.type]}`}
           >
-            <span className="mt-0.5 font-bold">{ICONS[t.type]}</span>
+            <Icon className="mt-0.5 h-4 w-4 shrink-0" />
             <span className="flex-1">{t.message}</span>
             <button
               onClick={() => dismiss(t.id)}
@@ -74,7 +78,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               &times;
             </button>
           </div>
-        ))}
+          )
+        })}
       </div>
     </ToastContext.Provider>
   )

@@ -10,7 +10,7 @@ DATA_DIR = BASE_DIR / "data"
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=str(BASE_DIR / ".env"), extra="ignore")
 
-    APP_NAME: str = "Mini-SOC"
+    APP_NAME: str = "IntelliSOC"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
 

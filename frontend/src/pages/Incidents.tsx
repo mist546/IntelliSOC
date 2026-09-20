@@ -144,7 +144,7 @@ export default function Incidents() {
                     <td className="px-3 py-2 text-slate-200">
                       {incident.title}
                       {newIds.has(incident.id) && (
-                        <span className="ml-2 inline-flex items-center rounded-full bg-sky-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-sky-400">
+                        <span className="ml-2 inline-flex items-center rounded-full bg-brand-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-brand-400">
                           New
                         </span>
                       )}

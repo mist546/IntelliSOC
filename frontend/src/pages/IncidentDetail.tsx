@@ -7,7 +7,7 @@ import { ErrorBanner, EmptyState } from '../components/ErrorBanner'
 import { SeverityBadge } from '../components/SeverityBadge'
 import { StatusBadge } from '../components/StatusBadge'
 import type { IncidentDetail as IncidentDetailType, Report, ReportFormat } from '../types'
-import { generateReport, getApiErrorMessage, getIncident, getReportDownloadUrl } from '../services/api'
+import { downloadReportFile, generateReport, getApiErrorMessage, getIncident } from '../services/api'
 import { formatDateTime } from '../utils/format'
 import { useToast } from '../hooks/useToast'
 
@@ -22,6 +22,7 @@ export default function IncidentDetail() {
   const [generating, setGenerating] = useState(false)
   const [reportError, setReportError] = useState<string | null>(null)
   const [report, setReport] = useState<Report | null>(null)
+  const [downloading, setDownloading] = useState(false)
 
   function load() {
     if (!id) return
@@ -50,6 +51,18 @@ export default function IncidentDetail() {
       toast.error(message)
     } finally {
       setGenerating(false)
+    }
+  }
+
+  async function handleDownload() {
+    if (!report) return
+    setDownloading(true)
+    try {
+      await downloadReportFile(report)
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to download report.'))
+    } finally {
+      setDownloading(false)
     }
   }
 
@@ -98,7 +111,7 @@ export default function IncidentDetail() {
             <button
               onClick={handleGenerateReport}
               disabled={generating}
-              className="flex items-center justify-center gap-2 rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex items-center justify-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {generating && <InlineSpinner />}
               Generate Report
@@ -108,17 +121,18 @@ export default function IncidentDetail() {
 
             {report && (
               <div className="rounded-md border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-300">
-                <p className="font-semibold">Report #{report.id} generated ({report.format})</p>
-                {report.format === 'pdf' ? (
-                  <a
-                    href={getReportDownloadUrl(report.id)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-2 inline-block rounded border border-emerald-500/50 px-3 py-1 text-xs font-medium text-emerald-200 hover:bg-emerald-500/20"
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold">Report #{report.id} generated ({report.format})</p>
+                  <button
+                    onClick={handleDownload}
+                    disabled={downloading}
+                    className="flex shrink-0 items-center gap-2 rounded border border-emerald-500/50 px-3 py-1 text-xs font-medium text-emerald-200 hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Download PDF
-                  </a>
-                ) : (
+                    {downloading && <InlineSpinner />}
+                    Download {report.format.toUpperCase()}
+                  </button>
+                </div>
+                {report.format === 'json' && (
                   <pre className="mt-2 max-h-64 overflow-auto rounded bg-slate-950 p-2 text-xs text-slate-300">
                     {JSON.stringify(report.content, null, 2)}
                   </pre>
@@ -150,7 +164,7 @@ export default function IncidentDetail() {
                         <SeverityBadge severity={alert.severity} />
                       </td>
                       <td className="px-3 py-2">
-                        <Link to={`/alerts/${alert.id}`} className="text-sky-400 hover:underline">
+                        <Link to={`/alerts/${alert.id}`} className="text-brand-400 hover:underline">
                           {alert.title}
                         </Link>
                       </td>

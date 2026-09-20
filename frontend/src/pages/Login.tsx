@@ -1,7 +1,8 @@
 import { FormEvent, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { ShieldCheck } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
-import { getApiErrorMessage } from '../services/api'
+import { getApiErrorMessage } from '../services/client'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { InlineSpinner } from '../components/LoadingSpinner'
 
@@ -42,10 +43,10 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-sky-500/20 text-2xl font-bold text-sky-400">
-            S
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-red-600 text-white shadow-lg shadow-brand-900/40">
+            <ShieldCheck className="h-6 w-6" strokeWidth={2.25} />
           </div>
-          <h1 className="text-xl font-bold text-slate-100">Mini-SOC</h1>
+          <h1 className="text-xl font-bold text-slate-100">IntelliSOC</h1>
           <p className="text-xs uppercase tracking-widest text-slate-500">Agentic AI Security Operations Center</p>
         </div>
 
@@ -55,7 +56,7 @@ export default function Login() {
               type="button"
               onClick={() => setMode('login')}
               className={`flex-1 rounded py-1.5 font-medium transition-colors ${
-                mode === 'login' ? 'bg-sky-500/20 text-sky-400' : 'text-slate-400 hover:text-slate-200'
+                mode === 'login' ? 'bg-brand-500/20 text-brand-400' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               Log in
@@ -64,7 +65,7 @@ export default function Login() {
               type="button"
               onClick={() => setMode('register')}
               className={`flex-1 rounded py-1.5 font-medium transition-colors ${
-                mode === 'register' ? 'bg-sky-500/20 text-sky-400' : 'text-slate-400 hover:text-slate-200'
+                mode === 'register' ? 'bg-brand-500/20 text-brand-400' : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               Register
@@ -84,7 +85,7 @@ export default function Login() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-sky-500"
+                className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-brand-500"
                 autoComplete="username"
               />
             </div>
@@ -97,7 +98,7 @@ export default function Login() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-sky-500"
+                  className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-brand-500"
                   autoComplete="email"
                 />
               </div>
@@ -110,7 +111,7 @@ export default function Login() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-sky-500"
+                className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 outline-none focus:border-brand-500"
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               />
             </div>
@@ -118,7 +119,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={submitting}
-              className="mt-2 flex items-center justify-center gap-2 rounded-md bg-sky-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-2 flex items-center justify-center gap-2 rounded-md bg-brand-600 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting && <InlineSpinner />}
               {mode === 'login' ? 'Log in' : 'Create account'}

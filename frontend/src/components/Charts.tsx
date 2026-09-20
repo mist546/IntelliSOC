@@ -27,7 +27,7 @@ const TOOLTIP_STYLE = {
   color: '#e2e8f0',
 }
 
-const PALETTE = ['#38bdf8', '#a78bfa', '#34d399', '#fb923c', '#f472b6', '#facc15', '#60a5fa', '#f87171']
+const PALETTE = ['#f97316', '#8b5cf6', '#34d399', '#facc15', '#f472b6', '#38bdf8', '#f87171', '#14b8a6']
 
 export function AlertsOverTimeChart({ data }: { data: AlertsOverTimePoint[] }) {
   if (!data || data.length === 0) return <EmptyState message="No alert trend data yet." />
@@ -36,15 +36,15 @@ export function AlertsOverTimeChart({ data }: { data: AlertsOverTimePoint[] }) {
       <AreaChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
         <defs>
           <linearGradient id="alertsGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#38bdf8" stopOpacity={0.4} />
-            <stop offset="100%" stopColor="#38bdf8" stopOpacity={0} />
+            <stop offset="0%" stopColor="#f97316" stopOpacity={0.4} />
+            <stop offset="100%" stopColor="#f97316" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid stroke={GRID_COLOR} strokeDasharray="3 3" vertical={false} />
         <XAxis dataKey="date" stroke={AXIS_COLOR} fontSize={11} tickLine={false} />
         <YAxis stroke={AXIS_COLOR} fontSize={11} tickLine={false} allowDecimals={false} />
         <Tooltip contentStyle={TOOLTIP_STYLE} />
-        <Area type="monotone" dataKey="count" stroke="#38bdf8" strokeWidth={2} fill="url(#alertsGradient)" />
+        <Area type="monotone" dataKey="count" stroke="#f97316" strokeWidth={2} fill="url(#alertsGradient)" />
       </AreaChart>
     </ResponsiveContainer>
   )

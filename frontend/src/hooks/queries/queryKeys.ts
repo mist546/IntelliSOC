@@ -1,0 +1,16 @@
+export const queryKeys = {
+  dashboardStats: ['dashboard', 'stats'] as const,
+  alerts: (filters: Record<string, string | undefined>) => ['alerts', filters] as const,
+  alert: (id: string) => ['alerts', id] as const,
+  investigation: (id: string) => ['investigations', id] as const,
+  logs: (filters: Record<string, string | undefined>) => ['logs', filters] as const,
+  incidents: (filters: Record<string, string | undefined>) => ['incidents', filters] as const,
+  incident: (id: string) => ['incidents', id] as const,
+  agents: ['agents'] as const,
+  scans: ['scans'] as const,
+  scan: (id: string) => ['scans', id] as const,
+  knowledgeDocuments: ['knowledge', 'documents'] as const,
+  systemHealth: ['system', 'health'] as const,
+  vectorDbStatus: ['system', 'vector-db'] as const,
+  aiStatus: ['ai', 'status'] as const,
+}

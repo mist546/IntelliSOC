@@ -32,3 +32,13 @@ export function titleCase(value: string | null | undefined): string {
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ')
 }
+
+export function detailsToText(details: string | Record<string, unknown> | null | undefined): string {
+  if (!details) return ''
+  if (typeof details === 'string') return details
+  try {
+    return JSON.stringify(details, null, 2)
+  } catch {
+    return String(details)
+  }
+}

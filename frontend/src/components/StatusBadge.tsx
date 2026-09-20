@@ -1,5 +1,5 @@
 const STYLES: Record<string, string> = {
-  NEW: 'bg-sky-500/15 text-sky-400 border-sky-500/40',
+  NEW: 'bg-brand-500/15 text-brand-400 border-brand-500/40',
   ACKNOWLEDGED: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/40',
   INVESTIGATING: 'bg-purple-500/15 text-purple-400 border-purple-500/40',
   RESOLVED: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40',

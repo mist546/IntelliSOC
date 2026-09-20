@@ -87,7 +87,7 @@ export default function WebsiteScans() {
             <button
               type="submit"
               disabled={scanning}
-              className="flex items-center gap-2 rounded-md bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {scanning && <InlineSpinner />}
               Start Scan

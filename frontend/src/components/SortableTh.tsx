@@ -1,3 +1,4 @@
+import { ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react'
 import type { SortDirection } from '../hooks/useSortableData'
 
 export function SortableTh({
@@ -24,9 +25,15 @@ export function SortableTh({
     >
       <span className="inline-flex items-center gap-1">
         {label}
-        <span className={`text-[9px] ${active ? 'text-sky-400' : 'text-slate-700'}`}>
-          {active ? (direction === 'asc' ? '▲' : '▼') : '⇅'}
-        </span>
+        {active ? (
+          direction === 'asc' ? (
+            <ChevronUp className="h-3 w-3 text-brand-400" />
+          ) : (
+            <ChevronDown className="h-3 w-3 text-brand-400" />
+          )
+        ) : (
+          <ArrowUpDown className="h-3 w-3 text-slate-700" />
+        )}
       </span>
     </th>
   )

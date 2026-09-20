@@ -289,3 +289,26 @@ export interface HealthCheck {
   }
   app: string
 }
+
+// ==================== LLM Settings ====================
+
+export type LlmProvider = 'ollama_local' | 'ollama_cloud'
+
+export interface LlmSettings {
+  provider: LlmProvider
+  ollama_model: string
+  ollama_base_url: string
+  ollama_cloud_model: string
+  ollama_cloud_base_url: string
+  ollama_cloud_api_key_configured: boolean
+  reachable: boolean
+}
+
+export interface LlmSettingsUpdate {
+  provider?: LlmProvider
+  ollama_model?: string
+  ollama_base_url?: string
+  ollama_cloud_model?: string
+  ollama_cloud_base_url?: string
+  ollama_cloud_api_key?: string
+}
