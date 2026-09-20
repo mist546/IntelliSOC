@@ -1,0 +1,42 @@
+{
+  "203.0.113.55": {
+    "reputation": "malicious",
+    "classification": "SSH Brute Force Source / Known Scanner",
+    "confidence": 0.92,
+    "details": {
+      "notes": "Repeatedly observed performing SSH credential-stuffing / brute-force attempts against lab honeypots.",
+      "categories": ["brute-force", "scanner"],
+      "first_seen": "2025-11-02",
+      "country": "Unknown"
+    }
+  },
+  "198.51.100.99": {
+    "reputation": "suspicious",
+    "classification": "Low-volume authentication probing",
+    "confidence": 0.55,
+    "details": {
+      "notes": "A small number of failed authentication attempts observed; insufficient volume to confirm malicious intent.",
+      "categories": ["recon"]
+    }
+  },
+  "198.51.100.20": {
+    "reputation": "clean",
+    "classification": "Internal / known-good",
+    "confidence": 0.8,
+    "details": {
+      "notes": "No adverse history observed. Treated as a normal internal or partner address."
+    }
+  },
+  "10.0.0.0/8": {
+    "reputation": "clean",
+    "classification": "Private network range (RFC1918)",
+    "confidence": 0.99,
+    "details": {"notes": "Private address space; not internet-routable."}
+  },
+  "192.168.0.0/16": {
+    "reputation": "clean",
+    "classification": "Private network range (RFC1918)",
+    "confidence": 0.99,
+    "details": {"notes": "Private address space; not internet-routable."}
+  }
+}

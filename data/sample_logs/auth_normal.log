@@ -1,0 +1,9 @@
+Jan 12 09:00:01 webserver01 sshd[1001]: Accepted publickey for deploy from 192.168.1.5 port 22334 ssh2
+Jan 12 09:00:01 webserver01 sshd[1001]: pam_unix(sshd:session): session opened for user deploy by (uid=1002)
+Jan 12 09:15:22 webserver01 sshd[1010]: Accepted password for alice from 192.168.1.10 port 55210 ssh2
+Jan 12 09:15:22 webserver01 sshd[1010]: pam_unix(sshd:session): session opened for user alice by (uid=1003)
+Jan 12 09:15:40 webserver01 sudo:    alice : TTY=pts/1 ; PWD=/home/alice ; USER=root ; COMMAND=/usr/bin/systemctl status nginx
+Jan 12 09:20:05 webserver01 sshd[1010]: pam_unix(sshd:session): session closed for user alice
+Jan 12 10:45:12 webserver01 sshd[1055]: Failed password for bob from 192.168.1.11 port 40012 ssh2
+Jan 12 10:45:20 webserver01 sshd[1056]: Accepted password for bob from 192.168.1.11 port 40015 ssh2
+Jan 12 10:45:20 webserver01 sshd[1056]: pam_unix(sshd:session): session opened for user bob by (uid=1004)

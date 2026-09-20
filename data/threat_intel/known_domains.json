@@ -1,0 +1,14 @@
+{
+  "malicious-c2.example": {
+    "reputation": "malicious",
+    "classification": "Known command-and-control domain (synthetic sample)",
+    "confidence": 0.9,
+    "details": {"notes": "Synthetic sample entry for demonstration purposes only.", "categories": ["c2"]}
+  },
+  "phishing-login.example": {
+    "reputation": "malicious",
+    "classification": "Credential phishing domain (synthetic sample)",
+    "confidence": 0.88,
+    "details": {"notes": "Synthetic sample entry for demonstration purposes only.", "categories": ["phishing"]}
+  }
+}

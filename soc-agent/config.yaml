@@ -1,0 +1,30 @@
+# Mini-SOC endpoint agent configuration.
+#
+# Credentials are NEVER stored here. Set them as environment variables
+# before running the agent:
+#   MINISOC_AGENT_ID=<id from /api/agents/register>
+#   MINISOC_AGENT_KEY=<api_key from /api/agents/register>
+
+backend_url: "http://localhost:8000"
+
+# How often (seconds) to check watched files for new lines.
+poll_interval_seconds: 5
+
+# How many parsed events to batch into a single POST /api/events call.
+batch_size: 200
+
+# Where to persist per-file read offsets so the agent does not resend
+# lines it has already forwarded after a restart.
+state_file: "state.json"
+
+# Files to monitor. Each entry needs a path and a source_type.
+# On Linux, point these at the real system logs:
+#   /var/log/auth.log        (source_type: AUTH_LOG)
+#   /var/log/syslog          (source_type: SYSLOG)
+#   /var/log/apache2/access.log (source_type: APACHE_ACCESS)
+#
+# On Windows (no native equivalents), the defaults below point at the
+# bundled sample logs so the full pipeline can still be demonstrated.
+watched_files:
+  - path: "../data/sample_logs/auth_brute_force.log"
+    source_type: "AUTH_LOG"

@@ -1,0 +1,41 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: sqlite:////app/data/mini_soc.db
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production-please}
+      # Ollama must be running on the HOST machine (`ollama serve`), not in
+      # this compose file - see docs/setup.md for why. On Linux, replace
+      # host.docker.internal with your host IP or use network_mode: host.
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:latest}
+      OLLAMA_EMBED_MODEL: ${OLLAMA_EMBED_MODEL:-nomic-embed-text}
+      LLM_PROVIDER: ${LLM_PROVIDER:-ollama_local}
+      OLLAMA_CLOUD_API_KEY: ${OLLAMA_CLOUD_API_KEY:-}
+      VIRUSTOTAL_API_KEY: ${VIRUSTOTAL_API_KEY:-}
+      NVD_API_KEY: ${NVD_API_KEY:-}
+      CORS_ORIGINS: '["http://localhost:5173"]'
+      # The container only has backend/ baked into its image; the top-level
+      # data/ and rag/ directories are brought in at runtime via the volume
+      # mount below, so every data-directory setting must point inside it.
+      CHROMA_PERSIST_DIR: /app/data/chroma_db
+      KNOWLEDGE_BASE_DIR: /app/data/knowledge_base
+      THREAT_INTEL_DIR: /app/data/threat_intel
+      REPORTS_DIR: /app/data/reports
+    volumes:
+      - ./data:/app/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+    depends_on:
+      - backend

@@ -1,0 +1,29 @@
+# Environments
+.env
+**/.venv/
+**/venv/
+**/__pycache__/
+*.pyc
+
+# Backend runtime data
+data/*.db
+data/reports/*.pdf
+rag/chroma_db/
+backend/uvicorn.log
+soc-agent/state.json
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+.pytest_cache/
+htmlcov/
+.coverage
