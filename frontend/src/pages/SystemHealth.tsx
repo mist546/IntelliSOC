@@ -81,7 +81,7 @@ export default function SystemHealth() {
         <StatusTile
           label="Vector DB (Chroma)"
           ok={vectorDb.isSuccess ? vectorDb.data.available : vectorDb.isError ? false : null}
-          detail={vectorDb.data?.message ?? undefined}
+          detail={vectorDb.data?.message || undefined}
           icon={ShieldCheck}
         />
       </div>

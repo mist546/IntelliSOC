@@ -6,6 +6,10 @@ export async function getAgents(): Promise<CollectorAgent[]> {
   return data
 }
 
+export async function deleteAgent(id: string): Promise<void> {
+  await api.delete(`/api/agents/${id}`)
+}
+
 export async function registerAgent(payload: { name: string; hostname: string }): Promise<AgentRegisterResponse> {
   const { data } = await api.post<AgentRegisterResponse>('/api/agents/register', payload)
   return data

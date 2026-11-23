@@ -31,6 +31,26 @@ export interface LogEvent {
   status: string | null
   message: string | null
   raw_log: string | null
+  metadata?: LogEventMetadata | null
+}
+
+/** Context the Wazuh parser keeps for events that came through a Wazuh manager. */
+export interface WazuhContext {
+  alert_id?: string
+  rule_id?: string
+  rule_level?: number
+  rule_description?: string
+  rule_groups?: string[]
+  mitre_ids?: string[]
+  agent_id?: string
+  agent_name?: string
+  agent_ip?: string
+  location?: string
+}
+
+export interface LogEventMetadata {
+  wazuh?: WazuhContext
+  [key: string]: unknown
 }
 
 export interface LogUploadResult {
@@ -102,20 +122,35 @@ export interface ThreatIntelResult {
   source: string
   confidence: number | null
   details: string | Record<string, unknown> | null
-  timestamp: string
+  timestamp: string | null
 }
 
 export interface RagSource {
   content: string
   source: string
   title: string
-  category: string
+  category: string // top-level knowledge base folder, e.g. response_playbooks, nist
   score: number
+  page?: number | null // PDF page number
+  heading?: string | null // markdown section, e.g. "Brute Force Response > Containment"
+  match?: 'semantic' | 'keyword' // keyword = exact identifier match (T1110, CWE-89, 4625)
+  id?: string // K1, K2 ... - how the AI cites it (investigations only)
+  purpose?: 'investigation_playbook' | 'response_playbook' | 'background'
+}
+
+/** A knowledge source the AI cited, verified against what it was given. */
+export interface AiReference {
+  id: string
+  source: string
+  title: string | null
+  page: number | null
+  heading: string | null
+  category: string | null
 }
 
 export interface AiAnalysis {
   attack_type: string | null
-  severity: Severity | null
+  severity: Severity | 'UNKNOWN' | null
   confidence: number | null
   summary: string | null
   evidence: string[]
@@ -126,11 +161,12 @@ export interface AiAnalysis {
   recommended_actions: string[]
   requires_human_approval: true
   insufficient_evidence: boolean
+  references?: AiReference[]
 }
 
 export interface Investigation {
   id: string
-  alert_id: string
+  alert_id: string | null
   incident_id: string | null
   status: InvestigationStatus
   trace: TraceStep[]
@@ -160,7 +196,7 @@ export interface InvestigationTraceResponse {
 
 export interface RagSearchResult {
   available: boolean
-  message: string | null
+  message: string
   results: RagSource[]
 }
 
@@ -219,7 +255,11 @@ export interface CollectorAgent {
   is_active: boolean
   last_seen_at: string | null
   created_at: string
+  connection_status: AgentConnectionStatus
 }
+
+/** Derived by the backend from the last heartbeat/event time. */
+export type AgentConnectionStatus = 'ONLINE' | 'STALE' | 'OFFLINE' | 'NEVER_SEEN'
 
 export interface AgentRegisterResponse {
   id: string
@@ -251,11 +291,15 @@ export interface IncidentStatusCount {
 
 export interface RecentInvestigation {
   id: string
-  alert_id: string
+  alert_id: string | null
   incident_id: string | null
   status: InvestigationStatus
   risk_score: number | null
   created_at: string
+}
+
+export interface InvestigationSummary extends RecentInvestigation {
+  completed_at: string | null
 }
 
 export interface RecentScanSummary {

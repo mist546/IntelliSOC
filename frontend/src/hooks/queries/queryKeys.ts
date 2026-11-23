@@ -2,6 +2,7 @@ export const queryKeys = {
   dashboardStats: ['dashboard', 'stats'] as const,
   alerts: (filters: Record<string, string | undefined>) => ['alerts', filters] as const,
   alert: (id: string) => ['alerts', id] as const,
+  investigations: ['investigations', 'list'] as const,
   investigation: (id: string) => ['investigations', id] as const,
   logs: (filters: Record<string, string | undefined>) => ['logs', filters] as const,
   incidents: (filters: Record<string, string | undefined>) => ['incidents', filters] as const,

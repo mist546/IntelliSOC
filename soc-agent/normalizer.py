@@ -21,4 +21,5 @@ def normalize(parsed: dict, source: str) -> dict | None:
         "status": parsed.get("status"),
         "message": parsed["message"],
         "raw_log": parsed["raw_log"],
+        "metadata": parsed.get("metadata"),
     }

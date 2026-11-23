@@ -4,7 +4,7 @@ import { ScanSearch } from 'lucide-react'
 import { PageHeader } from '../components/PageHeader'
 import { Card } from '../components/Card'
 import { LoadingSpinner, InlineSpinner } from '../components/LoadingSpinner'
-import { ErrorBanner, EmptyState, WarningBanner } from '../components/ErrorBanner'
+import { ErrorBanner, EmptyState } from '../components/ErrorBanner'
 import { SeverityBadge } from '../components/SeverityBadge'
 import { StatusBadge } from '../components/StatusBadge'
 import { CopyButton } from '../components/CopyButton'
@@ -53,13 +53,14 @@ export default function AlertDetail() {
   async function handleInvestigate() {
     if (!id) return
     setInvestigateError(null)
-    toast.info('AI investigation started - this can take up to a couple of minutes on local hardware.')
     try {
+      // Returns at once with status RUNNING; the investigation page then
+      // shows each agent step live as the backend works through it.
       const investigation = await investigate.mutateAsync(id)
-      toast.success('Investigation completed - opening results.')
+      toast.info('AI investigation started - follow its progress live.')
       navigate(`/investigations/${investigation.id}`)
     } catch (err) {
-      const message = getApiErrorMessage(err, 'Investigation failed to complete.')
+      const message = getApiErrorMessage(err, 'Could not start the investigation.')
       setInvestigateError(message)
       toast.error(message)
     }
@@ -81,19 +82,11 @@ export default function AlertDetail() {
             className="flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {investigate.isPending ? <InlineSpinner /> : <ScanSearch className="h-4 w-4" />}
-            {investigate.isPending ? 'Investigating...' : 'Investigate with AI'}
+            {investigate.isPending ? 'Starting...' : 'Investigate with AI'}
           </button>
         }
       />
 
-      {investigate.isPending && (
-        <div className="mb-4">
-          <WarningBanner
-            title="AI investigation running"
-            message="This may take up to 2 minutes on local hardware. Please keep this tab open."
-          />
-        </div>
-      )}
       {investigateError && (
         <div className="mb-4">
           <ErrorBanner message={investigateError} onRetry={handleInvestigate} />

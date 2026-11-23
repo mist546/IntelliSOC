@@ -75,6 +75,11 @@ def render_pdf(content: dict, output_path: str) -> None:
                 story.append(Paragraph("Recommended actions (require human approval):", body))
                 for action in inv["recommended_actions"]:
                     story.append(Paragraph(f"- {action}", body))
+            if inv.get("ai_references"):
+                cited = "; ".join(
+                    f"[{r['id']}] {r['source']}" + (f" p. {r['page']}" if r.get("page") else "") for r in inv["ai_references"]
+                )
+                story.append(Paragraph(f"Knowledge cited by the AI: {cited}", small))
         else:
             story.append(Paragraph("AI analysis was not available for this investigation.", body))
 

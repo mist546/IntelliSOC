@@ -1,0 +1,92 @@
+[
+  {
+    "Id": 4625,
+    "TimeCreated": "/Date(1741943525000)/",
+    "MachineName": "WIN-FILESRV01",
+    "Message": "An account failed to log on.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\t-\r\n\tAccount Domain:\t\t-\r\n\tLogon ID:\t\t0x0\r\n\r\nLogon Type:\t\t3\r\n\r\nAccount For Which Logon Failed:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\tAdministrator\r\n\tAccount Domain:\t\tWIN-FILESRV01\r\n\r\nFailure Information:\r\n\tFailure Reason:\t\tUnknown user name or bad password.\r\n\tStatus:\t\t\t0xC000006D\r\n\tSub Status:\t\t0xC000006A\r\n\r\nProcess Information:\r\n\tCaller Process ID:\t0x0\r\n\tCaller Process Name:\t-\r\n\r\nNetwork Information:\r\n\tWorkstation Name:\tKALI\r\n\tSource Network Address:\t198.51.100.77\r\n\tSource Port:\t\t40000\r\n\r\nDetailed Authentication Information:\r\n\tLogon Process:\t\tNtLmSsp \r\n\tAuthentication Package:\tNTLM\r\n"
+  },
+  {
+    "Id": 4625,
+    "TimeCreated": "/Date(1741943536000)/",
+    "MachineName": "WIN-FILESRV01",
+    "Message": "An account failed to log on.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\t-\r\n\tAccount Domain:\t\t-\r\n\tLogon ID:\t\t0x0\r\n\r\nLogon Type:\t\t3\r\n\r\nAccount For Which Logon Failed:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\tAdministrator\r\n\tAccount Domain:\t\tWIN-FILESRV01\r\n\r\nFailure Information:\r\n\tFailure Reason:\t\tUnknown user name or bad password.\r\n\tStatus:\t\t\t0xC000006D\r\n\tSub Status:\t\t0xC000006A\r\n\r\nProcess Information:\r\n\tCaller Process ID:\t0x0\r\n\tCaller Process Name:\t-\r\n\r\nNetwork Information:\r\n\tWorkstation Name:\tKALI\r\n\tSource Network Address:\t198.51.100.77\r\n\tSource Port:\t\t40001\r\n\r\nDetailed Authentication Information:\r\n\tLogon Process:\t\tNtLmSsp \r\n\tAuthentication Package:\tNTLM\r\n"
+  },
+  {
+    "Id": 4625,
+    "TimeCreated": "/Date(1741943547000)/",
+    "MachineName": "WIN-FILESRV01",
+    "Message": "An account failed to log on.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\t-\r\n\tAccount Domain:\t\t-\r\n\tLogon ID:\t\t0x0\r\n\r\nLogon Type:\t\t3\r\n\r\nAccount For Which Logon Failed:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\tAdministrator\r\n\tAccount Domain:\t\tWIN-FILESRV01\r\n\r\nFailure Information:\r\n\tFailure Reason:\t\tUnknown user name or bad password.\r\n\tStatus:\t\t\t0xC000006D\r\n\tSub Status:\t\t0xC000006A\r\n\r\nProcess Information:\r\n\tCaller Process ID:\t0x0\r\n\tCaller Process Name:\t-\r\n\r\nNetwork Information:\r\n\tWorkstation Name:\tKALI\r\n\tSource Network Address:\t198.51.100.77\r\n\tSource Port:\t\t40002\r\n\r\nDetailed Authentication Information:\r\n\tLogon Process:\t\tNtLmSsp \r\n\tAuthentication Package:\tNTLM\r\n"
+  },
+  {
+    "Id": 4625,
+    "TimeCreated": "/Date(1741943558000)/",
+    "MachineName": "WIN-FILESRV01",
+    "Message": "An account failed to log on.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\t-\r\n\tAccount Domain:\t\t-\r\n\tLogon ID:\t\t0x0\r\n\r\nLogon Type:\t\t3\r\n\r\nAccount For Which Logon Failed:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\tAdministrator\r\n\tAccount Domain:\t\tWIN-FILESRV01\r\n\r\nFailure Information:\r\n\tFailure Reason:\t\tUnknown user name or bad password.\r\n\tStatus:\t\t\t0xC000006D\r\n\tSub Status:\t\t0xC000006A\r\n\r\nProcess Information:\r\n\tCaller Process ID:\t0x0\r\n\tCaller Process Name:\t-\r\n\r\nNetwork Information:\r\n\tWorkstation Name:\tKALI\r\n\tSource Network Address:\t198.51.100.77\r\n\tSource Port:\t\t40003\r\n\r\nDetailed Authentication Information:\r\n\tLogon Process:\t\tNtLmSsp \r\n\tAuthentication Package:\tNTLM\r\n"
+  },
+  {
+    "Id": 4625,
+    "TimeCreated": "/Date(1741943569000)/",
+    "MachineName": "WIN-FILESRV01",
+    "Message": "An account failed to log on.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\t-\r\n\tAccount Domain:\t\t-\r\n\tLogon ID:\t\t0x0\r\n\r\nLogon Type:\t\t3\r\n\r\nAccount For Which Logon Failed:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\tAdministrator\r\n\tAccount Domain:\t\tWIN-FILESRV01\r\n\r\nFailure Information:\r\n\tFailure Reason:\t\tUnknown user name or bad password.\r\n\tStatus:\t\t\t0xC000006D\r\n\tSub Status:\t\t0xC000006A\r\n\r\nProcess Information:\r\n\tCaller Process ID:\t0x0\r\n\tCaller Process Name:\t-\r\n\r\nNetwork Information:\r\n\tWorkstation Name:\tKALI\r\n\tSource Network Address:\t198.51.100.77\r\n\tSource Port:\t\t40004\r\n\r\nDetailed Authentication Information:\r\n\tLogon Process:\t\tNtLmSsp \r\n\tAuthentication Package:\tNTLM\r\n"
+  },
+  {
+    "Id": 4625,
+    "TimeCreated": "/Date(1741943580000)/",
+    "MachineName": "WIN-FILESRV01",
+    "Message": "An account failed to log on.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\t-\r\n\tAccount Domain:\t\t-\r\n\tLogon ID:\t\t0x0\r\n\r\nLogon Type:\t\t3\r\n\r\nAccount For Which Logon Failed:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\tAdministrator\r\n\tAccount Domain:\t\tWIN-FILESRV01\r\n\r\nFailure Information:\r\n\tFailure Reason:\t\tUnknown user name or bad password.\r\n\tStatus:\t\t\t0xC000006D\r\n\tSub Status:\t\t0xC000006A\r\n\r\nProcess Information:\r\n\tCaller Process ID:\t0x0\r\n\tCaller Process Name:\t-\r\n\r\nNetwork Information:\r\n\tWorkstation Name:\tKALI\r\n\tSource Network Address:\t198.51.100.77\r\n\tSource Port:\t\t40005\r\n\r\nDetailed Authentication Information:\r\n\tLogon Process:\t\tNtLmSsp \r\n\tAuthentication Package:\tNTLM\r\n"
+  },
+  {
+    "Id": 4625,
+    "TimeCreated": "/Date(1741943591000)/",
+    "MachineName": "WIN-FILESRV01",
+    "Message": "An account failed to log on.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\t-\r\n\tAccount Domain:\t\t-\r\n\tLogon ID:\t\t0x0\r\n\r\nLogon Type:\t\t3\r\n\r\nAccount For Which Logon Failed:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\tbackup\r\n\tAccount Domain:\t\tWIN-FILESRV01\r\n\r\nFailure Information:\r\n\tFailure Reason:\t\tUnknown user name or bad password.\r\n\tStatus:\t\t\t0xC000006D\r\n\tSub Status:\t\t0xC000006A\r\n\r\nProcess Information:\r\n\tCaller Process ID:\t0x0\r\n\tCaller Process Name:\t-\r\n\r\nNetwork Information:\r\n\tWorkstation Name:\tKALI\r\n\tSource Network Address:\t198.51.100.77\r\n\tSource Port:\t\t40006\r\n\r\nDetailed Authentication Information:\r\n\tLogon Process:\t\tNtLmSsp \r\n\tAuthentication Package:\tNTLM\r\n"
+  },
+  {
+    "Id": 4625,
+    "TimeCreated": "/Date(1741943602000)/",
+    "MachineName": "WIN-FILESRV01",
+    "Message": "An account failed to log on.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\t-\r\n\tAccount Domain:\t\t-\r\n\tLogon ID:\t\t0x0\r\n\r\nLogon Type:\t\t3\r\n\r\nAccount For Which Logon Failed:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\tsvc_sql\r\n\tAccount Domain:\t\tWIN-FILESRV01\r\n\r\nFailure Information:\r\n\tFailure Reason:\t\tUnknown user name or bad password.\r\n\tStatus:\t\t\t0xC000006D\r\n\tSub Status:\t\t0xC000006A\r\n\r\nProcess Information:\r\n\tCaller Process ID:\t0x0\r\n\tCaller Process Name:\t-\r\n\r\nNetwork Information:\r\n\tWorkstation Name:\tKALI\r\n\tSource Network Address:\t198.51.100.77\r\n\tSource Port:\t\t40007\r\n\r\nDetailed Authentication Information:\r\n\tLogon Process:\t\tNtLmSsp \r\n\tAuthentication Package:\tNTLM\r\n"
+  },
+  {
+    "Id": 4625,
+    "TimeCreated": "/Date(1741943613000)/",
+    "MachineName": "WIN-FILESRV01",
+    "Message": "An account failed to log on.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\t-\r\n\tAccount Domain:\t\t-\r\n\tLogon ID:\t\t0x0\r\n\r\nLogon Type:\t\t3\r\n\r\nAccount For Which Logon Failed:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\tjsmith\r\n\tAccount Domain:\t\tWIN-FILESRV01\r\n\r\nFailure Information:\r\n\tFailure Reason:\t\tUnknown user name or bad password.\r\n\tStatus:\t\t\t0xC000006D\r\n\tSub Status:\t\t0xC000006A\r\n\r\nProcess Information:\r\n\tCaller Process ID:\t0x0\r\n\tCaller Process Name:\t-\r\n\r\nNetwork Information:\r\n\tWorkstation Name:\tKALI\r\n\tSource Network Address:\t198.51.100.77\r\n\tSource Port:\t\t40008\r\n\r\nDetailed Authentication Information:\r\n\tLogon Process:\t\tNtLmSsp \r\n\tAuthentication Package:\tNTLM\r\n"
+  },
+  {
+    "Id": 4625,
+    "TimeCreated": "/Date(1741943624000)/",
+    "MachineName": "WIN-FILESRV01",
+    "Message": "An account failed to log on.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\t-\r\n\tAccount Domain:\t\t-\r\n\tLogon ID:\t\t0x0\r\n\r\nLogon Type:\t\t3\r\n\r\nAccount For Which Logon Failed:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\tAdministrator\r\n\tAccount Domain:\t\tWIN-FILESRV01\r\n\r\nFailure Information:\r\n\tFailure Reason:\t\tUnknown user name or bad password.\r\n\tStatus:\t\t\t0xC000006D\r\n\tSub Status:\t\t0xC000006A\r\n\r\nProcess Information:\r\n\tCaller Process ID:\t0x0\r\n\tCaller Process Name:\t-\r\n\r\nNetwork Information:\r\n\tWorkstation Name:\tKALI\r\n\tSource Network Address:\t198.51.100.77\r\n\tSource Port:\t\t40009\r\n\r\nDetailed Authentication Information:\r\n\tLogon Process:\t\tNtLmSsp \r\n\tAuthentication Package:\tNTLM\r\n"
+  },
+  {
+    "Id": 4625,
+    "TimeCreated": "/Date(1741943635000)/",
+    "MachineName": "WIN-FILESRV01",
+    "Message": "An account failed to log on.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\t-\r\n\tAccount Domain:\t\t-\r\n\tLogon ID:\t\t0x0\r\n\r\nLogon Type:\t\t3\r\n\r\nAccount For Which Logon Failed:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\tAdministrator\r\n\tAccount Domain:\t\tWIN-FILESRV01\r\n\r\nFailure Information:\r\n\tFailure Reason:\t\tUnknown user name or bad password.\r\n\tStatus:\t\t\t0xC000006D\r\n\tSub Status:\t\t0xC000006A\r\n\r\nProcess Information:\r\n\tCaller Process ID:\t0x0\r\n\tCaller Process Name:\t-\r\n\r\nNetwork Information:\r\n\tWorkstation Name:\tKALI\r\n\tSource Network Address:\t198.51.100.77\r\n\tSource Port:\t\t40010\r\n\r\nDetailed Authentication Information:\r\n\tLogon Process:\t\tNtLmSsp \r\n\tAuthentication Package:\tNTLM\r\n"
+  },
+  {
+    "Id": 4625,
+    "TimeCreated": "/Date(1741943646000)/",
+    "MachineName": "WIN-FILESRV01",
+    "Message": "An account failed to log on.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\t-\r\n\tAccount Domain:\t\t-\r\n\tLogon ID:\t\t0x0\r\n\r\nLogon Type:\t\t3\r\n\r\nAccount For Which Logon Failed:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\tAdministrator\r\n\tAccount Domain:\t\tWIN-FILESRV01\r\n\r\nFailure Information:\r\n\tFailure Reason:\t\tUnknown user name or bad password.\r\n\tStatus:\t\t\t0xC000006D\r\n\tSub Status:\t\t0xC000006A\r\n\r\nProcess Information:\r\n\tCaller Process ID:\t0x0\r\n\tCaller Process Name:\t-\r\n\r\nNetwork Information:\r\n\tWorkstation Name:\tKALI\r\n\tSource Network Address:\t198.51.100.77\r\n\tSource Port:\t\t40011\r\n\r\nDetailed Authentication Information:\r\n\tLogon Process:\t\tNtLmSsp \r\n\tAuthentication Package:\tNTLM\r\n"
+  },
+  {
+    "Id": 4624,
+    "TimeCreated": "/Date(1741943661000)/",
+    "MachineName": "WIN-FILESRV01",
+    "Message": "An account was successfully logged on.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\t-\r\n\tAccount Domain:\t\t-\r\n\tLogon ID:\t\t0x0\r\n\r\nLogon Information:\r\n\tLogon Type:\t\t3\r\n\tRestricted Admin Mode:\t-\r\n\tVirtual Account:\t\tNo\r\n\tElevated Token:\t\tYes\r\n\r\nNew Logon:\r\n\tSecurity ID:\t\tS-1-5-21-1004336348-1177238915-682003330-1001\r\n\tAccount Name:\t\tAdministrator\r\n\tAccount Domain:\t\tWIN-FILESRV01\r\n\tLogon ID:\t\t0x3E7A21\r\n\r\nNetwork Information:\r\n\tWorkstation Name:\tKALI\r\n\tSource Network Address:\t198.51.100.77\r\n\tSource Port:\t\t40213\r\n\r\nDetailed Authentication Information:\r\n\tLogon Process:\t\tNtLmSsp \r\n\tAuthentication Package:\tNTLM\r\n"
+  },
+  {
+    "Id": 4672,
+    "TimeCreated": "/Date(1741943705000)/",
+    "MachineName": "WIN-FILESRV01",
+    "Message": "Special privileges assigned to new logon.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-5-18\r\n\tAccount Name:\t\tSYSTEM\r\n\tAccount Domain:\t\tNT AUTHORITY\r\n\tLogon ID:\t\t0x3E7\r\n"
+  },
+  {
+    "Id": 4624,
+    "TimeCreated": "/Date(1741943825000)/",
+    "MachineName": "WIN-FILESRV01",
+    "Message": "An account was successfully logged on.\r\n\r\nSubject:\r\n\tSecurity ID:\t\tS-1-0-0\r\n\tAccount Name:\t\t-\r\n\tAccount Domain:\t\t-\r\n\tLogon ID:\t\t0x0\r\n\r\nLogon Information:\r\n\tLogon Type:\t\t3\r\n\tRestricted Admin Mode:\t-\r\n\tVirtual Account:\t\tNo\r\n\tElevated Token:\t\tYes\r\n\r\nNew Logon:\r\n\tSecurity ID:\t\tS-1-5-21-1004336348-1177238915-682003330-1001\r\n\tAccount Name:\t\tmwilson\r\n\tAccount Domain:\t\tWIN-FILESRV01\r\n\tLogon ID:\t\t0x3E7A21\r\n\r\nNetwork Information:\r\n\tWorkstation Name:\tWIN-FILESRV01\r\n\tSource Network Address:\t-\r\n\tSource Port:\t\t40213\r\n\r\nDetailed Authentication Information:\r\n\tLogon Process:\t\tNtLmSsp \r\n\tAuthentication Package:\tNTLM\r\n"
+  }
+]

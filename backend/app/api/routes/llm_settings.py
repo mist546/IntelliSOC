@@ -39,13 +39,6 @@ def update_llm_settings(payload: LLMSettingsUpdate, _admin=Depends(require_admin
     if payload.provider is not None and payload.provider not in VALID_PROVIDERS:
         raise HTTPException(status_code=400, detail=f"provider must be one of {sorted(VALID_PROVIDERS)}")
 
-    effective_provider = payload.provider if payload.provider is not None else settings.LLM_PROVIDER
-    effective_cloud_key = (
-        payload.ollama_cloud_api_key if payload.ollama_cloud_api_key is not None else settings.OLLAMA_CLOUD_API_KEY
-    )
-    if effective_provider == "ollama_cloud" and not effective_cloud_key:
-        raise HTTPException(status_code=400, detail="Set an Ollama Cloud API key before switching to the cloud provider")
-
     env_updates: dict[str, str] = {}
 
     if payload.provider is not None:

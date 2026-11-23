@@ -3,7 +3,7 @@ from pathlib import Path
 SAMPLE_LOG = Path(__file__).resolve().parent.parent.parent / "data" / "sample_logs" / "auth_brute_force.log"
 
 
-def test_milestone2_agentic_investigation_end_to_end(client, auth_headers):
+def test_milestone2_agentic_investigation_end_to_end(client, auth_headers, investigate):
     """Alert -> Agent investigation -> Related evidence -> Threat intel ->
     RAG -> Ollama -> Risk assessment -> AI analysis -> Response recommendation.
 
@@ -24,9 +24,7 @@ def test_milestone2_agentic_investigation_end_to_end(client, auth_headers):
     assert len(brute_force_alerts) == 1
     alert_id = brute_force_alerts[0]["id"]
 
-    investigate_resp = client.post(f"/api/alerts/{alert_id}/investigate", headers=auth_headers, json={})
-    assert investigate_resp.status_code == 200, investigate_resp.text
-    investigation = investigate_resp.json()
+    investigation = investigate(alert_id)
 
     assert investigation["status"] == "COMPLETED"
     assert len(investigation["trace"]) >= 5

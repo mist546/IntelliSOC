@@ -16,6 +16,8 @@ export async function getLogs(params: {
   limit?: number
   source_ip?: string
   event_type?: string
+  source_type?: string
+  wazuh?: boolean
 }): Promise<LogEvent[]> {
   const { data } = await api.get<LogEvent[]>('/api/logs', { params })
   return data

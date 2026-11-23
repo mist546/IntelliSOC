@@ -1,5 +1,10 @@
 import { api } from './client'
-import type { Investigation, InvestigationTraceResponse } from '../types'
+import type { Investigation, InvestigationSummary, InvestigationTraceResponse } from '../types'
+
+export async function getInvestigations(params: { status?: string; skip?: number; limit?: number }): Promise<InvestigationSummary[]> {
+  const { data } = await api.get<InvestigationSummary[]>('/api/investigations', { params })
+  return data
+}
 
 export async function getInvestigation(id: number | string): Promise<Investigation> {
   const { data } = await api.get<Investigation>(`/api/investigations/${id}`)

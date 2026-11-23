@@ -10,6 +10,7 @@ import type { IncidentDetail as IncidentDetailType, Report, ReportFormat } from 
 import { downloadReportFile, generateReport, getApiErrorMessage, getIncident } from '../services/api'
 import { formatDateTime } from '../utils/format'
 import { useToast } from '../hooks/useToast'
+import { useLiveEvent } from '../hooks/useLiveEvents'
 
 export default function IncidentDetail() {
   const { id } = useParams()
@@ -24,9 +25,9 @@ export default function IncidentDetail() {
   const [report, setReport] = useState<Report | null>(null)
   const [downloading, setDownloading] = useState(false)
 
-  function load() {
+  function load(showSpinner = true) {
     if (!id) return
-    setLoading(true)
+    if (showSpinner) setLoading(true)
     setError(null)
     getIncident(id)
       .then(setIncident)
@@ -34,7 +35,10 @@ export default function IncidentDetail() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(load, [id])
+  useEffect(() => load(), [id])
+  useLiveEvent(['incident.updated', 'investigation.completed'], (event) => {
+    if (event.type === 'investigation.completed' || event.data.id === id) load(false)
+  })
 
   async function handleGenerateReport() {
     if (!id) return
@@ -67,7 +71,7 @@ export default function IncidentDetail() {
   }
 
   if (loading) return <LoadingSpinner label="Loading incident..." />
-  if (error) return <ErrorBanner message={error} onRetry={load} />
+  if (error) return <ErrorBanner message={error} onRetry={() => load()} />
   if (!incident) return <EmptyState message="Incident not found." />
 
   return (

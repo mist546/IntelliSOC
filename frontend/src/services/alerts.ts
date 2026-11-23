@@ -22,15 +22,9 @@ export async function updateAlertStatus(id: number | string, status: AlertStatus
   return data
 }
 
+/** Starts an AI investigation. The backend answers immediately with the
+ * investigation in status RUNNING and keeps working in the background. */
 export async function investigateAlert(id: number | string): Promise<Investigation> {
-  // Must exceed the backend's own worst-case budget: OLLAMA_TIMEOUT (default
-  // 240s) plus RAG/threat-intel overhead. A shorter client timeout would
-  // abort the UI request while the backend investigation keeps running and
-  // completes successfully, showing the user a false failure.
-  const { data } = await api.post<Investigation>(
-    `/api/alerts/${id}/investigate`,
-    {},
-    { timeout: 300000 },
-  )
+  const { data } = await api.post<Investigation>(`/api/alerts/${id}/investigate`, {})
   return data
 }

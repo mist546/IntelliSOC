@@ -1,9 +1,10 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ChevronDown, LogOut, Menu, Search, Settings as SettingsIcon, ShieldAlert, ShieldCheck } from 'lucide-react'
+import { ChevronDown, LogOut, Menu, Radio, Search, Settings as SettingsIcon, ShieldAlert, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useSystemHealthQuery } from '../hooks/queries/useSystemHealth'
 import { useDashboardStats } from '../hooks/queries/useDashboard'
+import { useLiveStatus } from '../hooks/useLiveEvents'
 
 const TITLE_OVERRIDES: Record<string, string> = {
   dashboard: 'Dashboard',
@@ -38,6 +39,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const breadcrumb = useBreadcrumb()
   const { data: health } = useSystemHealthQuery(true)
   const { data: stats } = useDashboardStats(true)
+  const liveStatus = useLiveStatus()
   const [menuOpen, setMenuOpen] = useState(false)
   const [query, setQuery] = useState('')
   const menuRef = useRef<HTMLDivElement>(null)
@@ -98,6 +100,24 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
             {criticalCount > 0 && <span className="text-red-400">· {criticalCount} Critical</span>}
           </Link>
         )}
+        <span
+          title={
+            liveStatus === 'live'
+              ? 'Connected to the live event stream - new alerts and investigation steps appear instantly'
+              : 'Live event stream disconnected - reconnecting (pages still refresh periodically)'
+          }
+          className={`hidden items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium sm:flex ${
+            liveStatus === 'live'
+              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+              : 'border-amber-500/40 bg-amber-500/10 text-amber-300'
+          }`}
+        >
+          <Radio
+            className="h-3.5 w-3.5"
+            style={liveStatus === 'live' ? { animation: 'pulse-dot 1.6s ease-in-out infinite' } : undefined}
+          />
+          {liveStatus === 'live' ? 'Live' : liveStatus === 'connecting' ? 'Connecting...' : 'Reconnecting...'}
+        </span>
         <span
           title={statusKnown ? `Backend status: ${health.status}` : 'Checking backend status...'}
           className={`hidden items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium sm:flex ${

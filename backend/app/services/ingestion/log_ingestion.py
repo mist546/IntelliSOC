@@ -7,12 +7,33 @@ from app.models.log_event import LogEvent
 from app.schemas.log_event import LogEventCreate
 from app.services.correlation.correlator import correlate_alerts
 from app.services.detection.engine import run_detection
+from app.services.live_events import publish_event
 from app.services.normalization.normalizer import normalize_to_log_event
-from app.services.parsing import detect_source_type, parse_content
+from app.services.parsing import ParsedEvent, detect_source_type, parse_content
 from app.utils.logging import get_logger
 from app.utils.time import to_naive_utc, utc_now
 
 logger = get_logger(__name__)
+
+
+def _publish_ingestion(source: str, events_created: int, alerts, incidents) -> None:
+    """Tell connected dashboards what just happened (called after commit)."""
+    if events_created:
+        publish_event("logs.ingested", {"source": source, "count": events_created})
+    for alert in alerts:
+        publish_event(
+            "alert.created",
+            {
+                "id": alert.id,
+                "title": alert.title,
+                "severity": alert.severity,
+                "detection_rule": alert.detection_rule,
+                "source_ip": alert.source_ip,
+                "incident_id": alert.incident_id,
+            },
+        )
+    for incident in incidents:
+        publish_event("incident.updated", {"id": incident.id, "title": incident.title, "severity": incident.severity})
 
 
 @dataclass
@@ -42,10 +63,25 @@ def ingest_raw_log(
         result.parse_errors.append(str(exc))
         return result
 
+    return ingest_parsed_events(db, parsed_events, source=filename, agent_id=agent_id, result=result)
+
+
+def ingest_parsed_events(
+    db: Session,
+    parsed_events: list[ParsedEvent],
+    source: str,
+    agent_id: str | None = None,
+    result: IngestionResult | None = None,
+) -> IngestionResult:
+    """Stores already-parsed events, then runs detection and correlation.
+    Shared by file uploads and the Wazuh bridge endpoint."""
+    if result is None:
+        result = IngestionResult(source_type="MIXED")
+
     stored_events: list[LogEvent] = []
     for parsed in parsed_events:
         try:
-            log_event = normalize_to_log_event(parsed, source=filename, agent_id=agent_id)
+            log_event = normalize_to_log_event(parsed, source=source, agent_id=agent_id)
             db.add(log_event)
             stored_events.append(log_event)
         except Exception as exc:  # noqa: BLE001
@@ -61,9 +97,10 @@ def ingest_raw_log(
     result.incidents_created = len(incidents)
 
     db.commit()
+    _publish_ingestion(source, result.events_created, alerts, incidents)
     logger.info(
         "Ingested %d events from %s -> %d alerts, %d incidents",
-        result.events_created, filename, result.alerts_created, result.incidents_created,
+        result.events_created, source, result.alerts_created, result.incidents_created,
     )
     return result
 
@@ -107,4 +144,5 @@ def ingest_normalized_events(
     result.incidents_created = len(incidents)
 
     db.commit()
+    _publish_ingestion(default_source, result.events_created, alerts, incidents)
     return result

@@ -14,6 +14,9 @@ class LLMAnalysis(BaseModel):
     recommended_actions: list[str] = []
     requires_human_approval: bool = True
     insufficient_evidence: bool = False
+    # [K] ids of the knowledge chunks that justify the analysis; checked
+    # against what was actually provided by the investigator.
+    references: list[str] = []
 
     @field_validator("severity")
     @classmethod

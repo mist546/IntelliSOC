@@ -7,8 +7,12 @@
 
 backend_url: "http://localhost:8000"
 
-# How often (seconds) to check watched files for new lines.
-poll_interval_seconds: 5
+# How often (seconds) to check watched files and the Windows event log.
+poll_interval_seconds: 2
+
+# How often (seconds) to tell the backend this agent is alive, so the
+# Agents page shows ONLINE even when no new logs arrive.
+heartbeat_interval_seconds: 30
 
 # How many parsed events to batch into a single POST /api/events call.
 batch_size: 200
@@ -21,10 +25,39 @@ state_file: "state.json"
 # On Linux, point these at the real system logs:
 #   /var/log/auth.log        (source_type: AUTH_LOG)
 #   /var/log/syslog          (source_type: SYSLOG)
-#   /var/log/apache2/access.log (source_type: APACHE_ACCESS)
 #
-# On Windows (no native equivalents), the defaults below point at the
-# bundled sample logs so the full pipeline can still be demonstrated.
+# The default is the live file that simulate_attack.py (this folder) appends to,
+# so an attack can be watched unfolding in real time. It is created by the
+# simulator; until then the agent simply skips it.
 watched_files:
-  - path: "../data/sample_logs/auth_brute_force.log"
+  - path: "../data/live_logs/auth.log"
     source_type: "AUTH_LOG"
+  # The attack lab (lab/docker-compose.yml): a real sshd and nginx in Docker
+  # whose logs land here. Missing until the lab is started.
+  - path: "../data/live_logs/lab/auth.log"
+    source_type: "AUTH_LOG"
+  - path: "../data/live_logs/lab/nginx_access.log"
+    source_type: "NGINX_ACCESS"
+  # The attack lab in Wazuh mode (lab\start_lab.ps1 -Wazuh): the target's
+  # logs go through a Wazuh agent and manager in Docker instead, and every
+  # event the manager processes lands here. Missing until Wazuh mode is
+  # started; only one of the two lab modes runs at a time.
+  - path: "../data/live_logs/wazuh/archives.json"
+    source_type: "WAZUH_ALERTS"
+  # To replay the bundled static sample once instead, add:
+  # - path: "../data/sample_logs/auth_brute_force.log"
+  #   source_type: "AUTH_LOG"
+
+# Live Windows event log collection (ignored on non-Windows hosts).
+# Reading the Security channel requires running the agent from an
+# elevated (Administrator) terminal; without it the agent prints a warning
+# and continues with the files above.
+windows_event_log:
+  enabled: true
+  channel: "Security"
+  # 4625 failed logon, 4624 successful logon (service/system logons are
+  # filtered out), 4740 account locked out, 4720 user created,
+  # 4648 explicit-credential logon, 1102 audit log cleared.
+  # 4672 (special privileges) is valid too but very noisy.
+  event_ids: [4625, 4624, 4740, 4720, 4648, 1102]
+  state_file: "windows_state.json"

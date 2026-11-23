@@ -61,3 +61,22 @@ def auth_headers(client):
     )
     token = resp.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture()
+def investigate(client, auth_headers, db_session):
+    """Starts an AI investigation and returns the finished result.
+
+    POST /investigate answers immediately with status RUNNING and the agent
+    continues as a background task. TestClient runs background tasks before
+    the call returns, so the completed investigation can be fetched straight
+    after (expire_all: the job committed through its own session)."""
+
+    def _run(alert_id: str) -> dict:
+        started = client.post(f"/api/alerts/{alert_id}/investigate", headers=auth_headers, json={})
+        assert started.status_code == 200, started.text
+        assert started.json()["status"] == "RUNNING"
+        db_session.expire_all()
+        return client.get(f"/api/investigations/{started.json()['id']}", headers=auth_headers).json()
+
+    return _run

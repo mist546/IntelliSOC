@@ -1,0 +1,37 @@
+# Wazuh mode for the attack lab - used on top of docker-compose.yml:
+#   .\start_lab.ps1 -Wazuh
+#
+#   target         its sshd/nginx logs stay inside the container (not the
+#                  host bind mount), and its Wazuh agent ships them to:
+#   wazuh-manager  decodes every event and writes it to
+#                  data/live_logs/wazuh/archives.json, which the soc-agent
+#                  on the host tails and forwards to IntelliSOC.
+#
+# The manager's ports 1514 (events) / 1515 (enrolment) are published on
+# 127.0.0.1 only, so a Wazuh agent on this Windows PC can report to it too
+# (docs/setup.md, "Wazuh in Docker").
+services:
+  target:
+    environment:
+      WAZUH_MANAGER: wazuh-manager
+    volumes:
+      # Replaces the base file's ../data/live_logs/lab bind mount (same
+      # container path), so the host soc-agent never sees these raw logs.
+      - target-logs:/var/log/lab
+    depends_on:
+      - wazuh-manager
+
+  wazuh-manager:
+    build: ./wazuh
+    hostname: wazuh-manager
+    ports:
+      - "127.0.0.1:1514:1514"
+      - "127.0.0.1:1515:1515"
+    volumes:
+      - ../data/live_logs/wazuh:/var/ossec/logs/archives
+    networks:
+      lab:
+        ipv4_address: 172.28.0.20
+
+volumes:
+  target-logs:

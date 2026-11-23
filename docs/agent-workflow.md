@@ -40,15 +40,31 @@ trade-off, not a shortcut:
    exist to search on.
 4. **Search related logs** - `search_related_logs()` around the alert's
    timestamp (+/- 30 minutes).
-5. **Extract indicators** - source IP is the primary pivot for this system.
+5. **Extract indicators** - source IP / username / host are recorded in the
+   trace ("Indicators extracted"), and for authentication alerts the agent
+   summarises what it actually observed across *all* related events:
+   "N failed attempts against K accounts" and "Successful login detected
+   ... AFTER failed attempts". These observations are also placed at the
+   top of the EVIDENCE section sent to the LLM, so the key facts never
+   depend on the truncated event sample.
 6. **Threat intelligence enrichment** - only if a source IP is present;
    local provider is always tried, VirusTotal only if configured, and any
    provider failure is caught and skipped rather than raised.
-7. **RAG knowledge retrieval** - a query built from the detection rule name
-   and alert title, plus a dedicated response-playbook query.
+7. **RAG knowledge retrieval** - three separate questions, each a trace
+   step: the rule's investigation playbook, its response playbook, and
+   background knowledge (attack/vulnerability docs, MITRE ATT&CK, OWASP,
+   NIST). A fixed rule-to-document map picks the playbooks; queries use the
+   alert text with IP addresses removed plus the rule's ATT&CK/CWE IDs
+   (matched exactly). Every retrieved chunk is numbered [K1..Kn] for the
+   LLM, which must cite the ones it used; citations are checked and
+   unknown ones dropped. See `docs/rag.md`.
 8. **Check previous incidents** - only if a correlating indicator exists.
 9. **Aggregate evidence** - everything above is assembled into one
-   evidence document with clearly labeled sections.
+   evidence document with clearly labeled sections (EVIDENCE /
+   THREAT_INTELLIGENCE / KNOWLEDGE / RESPONSE_PLAYBOOK /
+   PREVIOUS_INCIDENTS / RISK). A supplementary Isolation Forest anomaly
+   score is computed when enough baseline exists; it is evidence only and
+   never decides anything on its own.
 10. **Calculate risk** - the deterministic risk engine (`services/risk/engine.py`)
     runs regardless of LLM availability.
 11. **Send evidence to the local LLM** - a single call, strict system
@@ -67,7 +83,24 @@ trade-off, not a shortcut:
     the trace, evidence, threat intel, RAG sources, risk score/factors, and
     AI analysis (or `llm_available: false` + `error_message` if the LLM
     step failed).
-16. **Complete** - the alert's status moves from `NEW` to `INVESTIGATING`.
+16. **Complete** - the alert's status moves from `NEW` to `INVESTIGATING`,
+    and the agent's final tool call, `generate_report`, persists a JSON
+    incident report capturing this investigation ("Investigation report
+    generated" in the trace). A report failure is recorded in the trace but
+    never fails the investigation. Analysts can still generate PDF reports
+    on demand from the incident page.
+
+## Running in the background, live
+
+`POST /api/alerts/{id}/investigate` calls `start_investigation()`, which
+saves an Investigation with status `RUNNING` and returns it at once; the
+route then schedules `run_investigation_job()` as a FastAPI background
+task with its own database session. Each `trace.add(...)` saves the trace
+and publishes an `investigation.step` event on the live stream, so the
+investigation page shows the agent's steps as they happen instead of a
+spinner for 30-90 s. Any unexpected exception marks the investigation
+`FAILED` with the error; one left `RUNNING` by a backend shutdown is
+marked `FAILED` at the next startup.
 
 ## The trace
 
@@ -86,11 +119,12 @@ summaries and observations, never a raw model chain-of-thought.
 | `get_ip_threat_intelligence` | Alert has a `source_ip` |
 | `get_domain_threat_intelligence` | Available for future domain-based rules |
 | `lookup_cve` | Available for future CVE-referencing findings |
-| `search_security_knowledge` | Always (grounds the LLM in OWASP/MITRE/CWE/playbooks) |
-| `get_response_playbook` | Always (detection-rule-specific playbook query) |
+| `get_investigation_playbook` | Always (the rule's investigation playbook; folder search if it does not exist yet) |
+| `get_response_playbook` | Always (the rule's response playbook + escalation) |
+| `get_background_knowledge` | Always (the rule's attack/vulnerability docs, MITRE ATT&CK, OWASP, NIST) |
 | `search_previous_incidents` | Alert has a `source_ip` or `username` |
 | `calculate_risk` | Always |
-| `generate_report` | Called separately, from the incident detail page/API, not during investigation |
+| `generate_report` | Always, as the final step when the alert belongs to an incident (JSON); PDF on demand from the incident page/API |
 
 ## Known limitation
 

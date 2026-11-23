@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     ALLOWED_UPLOAD_EXTENSIONS: list[str] = [".log", ".txt", ".csv", ".json"]
 
     # Ollama (local)
-    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OLLAMA_BASE_URL: str = "http://127.0.0.1:11434"
     OLLAMA_MODEL: str = "gemma4:latest"
     OLLAMA_EMBED_MODEL: str = "nomic-embed-text"
     OLLAMA_TIMEOUT: int = 240
@@ -37,12 +37,21 @@ class Settings(BaseSettings):
     LLM_PROVIDER: str = "ollama_local"  # ollama_local | ollama_cloud
     OLLAMA_CLOUD_BASE_URL: str = "https://ollama.com"
     OLLAMA_CLOUD_API_KEY: str = ""
-    OLLAMA_CLOUD_MODEL: str = "qwen3:4b"
+    OLLAMA_CLOUD_MODEL: str = "gpt-oss:120b-cloud"
 
     # RAG
     CHROMA_PERSIST_DIR: str = str((BASE_DIR / "rag" / "chroma_db"))
     RAG_COLLECTION_NAME: str = "security_knowledge"
     RAG_TOP_K: int = 4
+    # nomic-embed-text is trained with task prefixes; embedding documents and
+    # queries without them measurably hurts retrieval. Set both to "" for an
+    # embedding model that does not use prefixes (then re-index with -Reset).
+    RAG_DOC_PREFIX: str = "search_document: "
+    RAG_QUERY_PREFIX: str = "search_query: "
+    # Chunks less similar than this (cosine similarity, 0-1) are treated as
+    # irrelevant and never handed to the LLM. Calibrated with
+    # backend/scripts/evaluate_rag.py.
+    RAG_MIN_SCORE: float = 0.65
     KNOWLEDGE_BASE_DIR: str = str((BASE_DIR / "data" / "knowledge_base"))
 
     # Threat Intel

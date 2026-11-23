@@ -16,7 +16,6 @@ import { Card } from '../components/Card'
 import { LoadingSpinner } from '../components/LoadingSpinner'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { getApiErrorMessage } from '../services/client'
-import { useSystemHealthQuery } from '../hooks/queries/useSystemHealth'
 import { useAiStatusQuery } from '../hooks/queries/useAiStatus'
 
 const PIPELINE = [
@@ -30,14 +29,13 @@ const PIPELINE = [
 ]
 
 export default function AIAnalysis() {
-  const { data: health, isLoading, isError, error, refetch } = useSystemHealthQuery(true)
-  const aiStatus = useAiStatusQuery()
+  const { data: aiStatus, isLoading, isError, error, refetch } = useAiStatusQuery()
 
-  const ollamaOk = health?.checks.ollama === 'ok' || health?.checks.ollama === true
+  const ollamaOk = aiStatus?.reachable === true
 
   return (
     <div>
-      <PageHeader title="AI Analysis" description="Local LLM status and the agentic investigation pipeline" />
+      <PageHeader title="AI Analysis" description="LLM status and the agentic investigation pipeline" />
 
       {isLoading ? (
         <LoadingSpinner label="Checking AI backend..." />
@@ -58,7 +56,9 @@ export default function AIAnalysis() {
                 <p className={`text-sm font-semibold ${ollamaOk ? 'text-emerald-300' : 'text-red-300'}`}>
                   {ollamaOk ? 'Reachable' : 'Unreachable'}
                 </p>
-                <p className="text-xs text-slate-500 font-mono-ids">{String(health?.checks.ollama ?? '—')}</p>
+                <p className="text-xs text-slate-500 font-mono-ids">
+                  {aiStatus?.provider === 'ollama_cloud' ? 'Cloud' : 'Local'} &middot; {aiStatus?.model}
+                </p>
               </div>
             </div>
             {!ollamaOk && (
@@ -69,26 +69,18 @@ export default function AIAnalysis() {
             )}
           </Card>
 
-          <Card title="Local Model Information">
-            {aiStatus.isSuccess ? (
-              <dl className="grid grid-cols-2 gap-y-2 text-sm">
+          <Card title="Model Information">
+            <div className="flex items-start gap-3">
+              <Cpu className="mt-0.5 h-5 w-5 shrink-0 text-slate-600" />
+              <dl className="grid flex-1 grid-cols-2 gap-y-2 text-sm">
                 <dt className="text-slate-500">Provider</dt>
-                <dd className="text-slate-200">{aiStatus.data.provider}</dd>
+                <dd className="text-slate-200">{aiStatus?.provider === 'ollama_cloud' ? 'Cloud (Ollama)' : 'Local (Ollama)'}</dd>
                 <dt className="text-slate-500">Model</dt>
-                <dd className="font-mono-ids text-slate-200">{aiStatus.data.model}</dd>
+                <dd className="font-mono-ids text-slate-200">{aiStatus?.model}</dd>
                 <dt className="text-slate-500">Embedding Model</dt>
-                <dd className="font-mono-ids text-slate-200">{aiStatus.data.embedding_model}</dd>
+                <dd className="font-mono-ids text-slate-200">{aiStatus?.embedding_model}</dd>
               </dl>
-            ) : (
-              <div className="flex items-start gap-3">
-                <Cpu className="mt-0.5 h-5 w-5 shrink-0 text-slate-600" />
-                <p className="text-sm text-slate-400">
-                  The LLM provider and model (Ollama host/model, embeddings model) are configured server-side via the
-                  backend's <code className="font-mono-ids text-slate-500">.env</code> file and aren't exposed
-                  dynamically via the API yet. Reachability above reflects the live status.
-                </p>
-              </div>
-            )}
+            </div>
           </Card>
         </div>
       )}

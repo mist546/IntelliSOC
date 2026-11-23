@@ -1,9 +1,10 @@
 import { Link, useParams } from 'react-router-dom'
 import { BookOpen, FileText, Radar, Sparkles } from 'lucide-react'
+import type { TraceStep } from '../types'
 import { PageHeader } from '../components/PageHeader'
 import { Card } from '../components/Card'
 import { EvidenceSection } from '../components/EvidenceSection'
-import { LoadingSpinner } from '../components/LoadingSpinner'
+import { InlineSpinner, LoadingSpinner } from '../components/LoadingSpinner'
 import { ErrorBanner, EmptyState, WarningBanner } from '../components/ErrorBanner'
 import { SeverityBadge } from '../components/SeverityBadge'
 import { StatusBadge } from '../components/StatusBadge'
@@ -11,6 +12,8 @@ import { ReputationBadge, reputationClassName } from '../components/ReputationBa
 import { getApiErrorMessage } from '../services/client'
 import { detailsToText, formatDateTime, formatPercent, titleCase } from '../utils/format'
 import { useInvestigationQuery } from '../hooks/queries/useInvestigation'
+
+const PURPOSE_LABEL: Record<string, string> = { investigation_playbook: 'Investigation playbook', response_playbook: 'Response playbook', background: 'Background' }
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : {}
@@ -22,6 +25,36 @@ function field(record: Record<string, unknown>, key: string): string {
   return String(value)
 }
 
+function InvestigationTimeline({ trace, running }: { trace: TraceStep[]; running: boolean }) {
+  if (!trace?.length && !running) return <EmptyState message="No timeline steps recorded." />
+  return (
+    <ol className="space-y-4">
+      {trace.map((step, i) => (
+        <li key={i} className="relative flex gap-3 animate-[fade-in_0.2s_ease-out]">
+          <div className="flex flex-col items-center">
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-brand-500/50 bg-brand-500/10 text-xs font-semibold text-brand-300">
+              {i + 1}
+            </div>
+            {(i < trace.length - 1 || running) && <div className="mt-1 w-px flex-1 bg-slate-800" />}
+          </div>
+          <div className="pb-2">
+            <p className="text-sm font-semibold text-slate-200">{step.action}</p>
+            <p className="mt-0.5 text-sm text-slate-400">{step.detail}</p>
+          </div>
+        </li>
+      ))}
+      {running && (
+        <li className="flex items-center gap-3 text-sm text-slate-400">
+          <div className="flex h-6 w-6 items-center justify-center">
+            <InlineSpinner />
+          </div>
+          Agent is working on the next step...
+        </li>
+      )}
+    </ol>
+  )
+}
+
 export default function InvestigationDetail() {
   const { id } = useParams()
   const { data: investigation, isLoading, isError, error, refetch } = useInvestigationQuery(id)
@@ -30,7 +63,41 @@ export default function InvestigationDetail() {
   if (isError) return <ErrorBanner message={getApiErrorMessage(error, 'Failed to load investigation.')} onRetry={() => refetch()} />
   if (!investigation) return <EmptyState message="Investigation not found." />
 
+  const running = investigation.status === 'RUNNING' || investigation.status === 'PENDING'
+  if (running) {
+    return (
+      <div>
+        <PageHeader
+          title={`Investigation #${investigation.id}`}
+          description={
+            <>
+              Alert{' '}
+              {investigation.alert_id ? (
+                <Link to={`/alerts/${investigation.alert_id}`} className="text-brand-400 hover:underline">
+                  #{investigation.alert_id}
+                </Link>
+              ) : (
+                '(deleted)'
+              )}
+            </>
+          }
+          actions={<StatusBadge status={investigation.status} />}
+        />
+        <div className="mb-4">
+          <WarningBanner
+            title="AI investigation in progress"
+            message="The agent is gathering evidence, threat intelligence and knowledge, then asking the LLM for its analysis. Each step appears below as it happens; the full results appear here when it finishes. You can leave this page - you will be notified when it completes."
+          />
+        </div>
+        <Card title={`Live Investigation Timeline (${investigation.trace.length} step${investigation.trace.length === 1 ? '' : 's'})`}>
+          <InvestigationTimeline trace={investigation.trace} running />
+        </Card>
+      </div>
+    )
+  }
+
   const { ai_analysis } = investigation
+  const citedIds = new Set((ai_analysis?.references ?? []).map((r) => r.id))
   const alertEvidence = asRecord(investigation.evidence?.alert)
   const relatedEvents = Array.isArray(investigation.evidence?.related_events)
     ? (investigation.evidence!.related_events as Record<string, unknown>[])
@@ -43,9 +110,13 @@ export default function InvestigationDetail() {
         description={
           <>
             Alert{' '}
-            <Link to={`/alerts/${investigation.alert_id}`} className="text-brand-400 hover:underline">
-              #{investigation.alert_id}
-            </Link>
+            {investigation.alert_id ? (
+              <Link to={`/alerts/${investigation.alert_id}`} className="text-brand-400 hover:underline">
+                #{investigation.alert_id}
+              </Link>
+            ) : (
+              '(deleted)'
+            )}
             {investigation.incident_id && (
               <>
                 {' '}
@@ -165,18 +236,32 @@ export default function InvestigationDetail() {
         <EvidenceSection tone="rag" title="RAG Knowledge Sources" icon={BookOpen}>
           {investigation.rag_sources && investigation.rag_sources.length > 0 ? (
             <div className="space-y-3">
-              {investigation.rag_sources.map((src, i) => (
-                <div key={i} className="rounded-md border border-slate-800 bg-slate-950/60 p-3">
+              {investigation.rag_sources.map((src, i) => {
+                const cited = !!src.id && citedIds.has(src.id)
+                return (
+                <div
+                  key={i}
+                  className={`rounded-md border bg-slate-950/60 p-3 ${cited ? 'border-brand-500/50' : 'border-slate-800'}`}
+                >
                   <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span className="font-semibold text-slate-300">{src.title}</span>
+                    <span className="font-semibold text-slate-300">
+                      {src.id && <span className="mr-1.5 font-mono-ids text-brand-400">[{src.id}]</span>}
+                      {src.title}
+                      {cited && <span className="ml-2 rounded bg-brand-500/15 px-1.5 text-[10px] text-brand-300">cited by AI</span>}
+                    </span>
                     <span>
-                      {src.category} &middot; score {src.score.toFixed(2)}
+                      {src.purpose ? PURPOSE_LABEL[src.purpose] : src.category} &middot; score {src.score.toFixed(2)}
+                      {src.match === 'keyword' && ' · exact ID match'}
                     </span>
                   </div>
-                  <p className="mt-1 text-xs text-slate-500">source: {src.source}</p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    source: {src.source}
+                    {src.page ? `, page ${src.page}` : ''}
+                  </p>
                   <p className="mt-2 text-sm text-slate-300">{src.content}</p>
                 </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <EmptyState message="No knowledge base sources retrieved (RAG may be unavailable)." />
@@ -270,32 +355,37 @@ export default function InvestigationDetail() {
                   </ul>
                 </div>
               )}
+
+              <div className="rounded-md border border-slate-800 p-3">
+                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">Sources cited by the AI</p>
+                {ai_analysis.references && ai_analysis.references.length > 0 ? (
+                  <ul className="space-y-1 text-sm text-slate-300">
+                    {ai_analysis.references.map((ref) => (
+                      <li key={ref.id}>
+                        <span className="mr-1.5 font-mono-ids text-brand-400">[{ref.id}]</span>
+                        {ref.title ?? ref.source}
+                        <span className="text-slate-500">
+                          {' '}
+                          &mdash; {ref.source}
+                          {ref.page ? `, page ${ref.page}` : ''}
+                          {ref.heading && !ref.page ? ` (${ref.heading})` : ''}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-slate-500">
+                    The AI did not cite any knowledge base source for this analysis.
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </EvidenceSection>
       </div>
 
       <Card title="Investigation Timeline">
-        {investigation.trace && investigation.trace.length > 0 ? (
-          <ol className="space-y-4">
-            {investigation.trace.map((step, i) => (
-              <li key={i} className="relative flex gap-3">
-                <div className="flex flex-col items-center">
-                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-brand-500/50 bg-brand-500/10 text-xs font-semibold text-brand-300">
-                    {i + 1}
-                  </div>
-                  {i < investigation.trace.length - 1 && <div className="mt-1 w-px flex-1 bg-slate-800" />}
-                </div>
-                <div className="pb-2">
-                  <p className="text-sm font-semibold text-slate-200">{step.action}</p>
-                  <p className="mt-0.5 text-sm text-slate-400">{step.detail}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <EmptyState message="No timeline steps recorded." />
-        )}
+        <InvestigationTimeline trace={investigation.trace} running={false} />
       </Card>
 
       <p className="mt-4 text-xs text-slate-600">

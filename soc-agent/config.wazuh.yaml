@@ -1,0 +1,31 @@
+# IntelliSOC bridge configuration for a Wazuh manager.
+#
+# Run this copy of soc-agent ON THE WAZUH MANAGER. It tails the manager's
+# alerts.json (every log line the Wazuh agents send that matches a Wazuh
+# rule) and forwards the raw alerts to IntelliSOC, which maps them to its own
+# events and runs its detection rules. See docs/setup.md, "Collecting logs
+# with Wazuh".
+#
+#   export MINISOC_AGENT_ID=<id> MINISOC_AGENT_KEY=<api_key>
+#   sudo -E .venv/bin/python agent.py --config config.wazuh.yaml
+#
+# alerts.json is owned by wazuh:wazuh (0660), hence sudo - or add the user
+# running the bridge to the "wazuh" group.
+
+# Your IntelliSOC PC's IP as seen from this VM - not localhost.
+backend_url: "http://192.168.56.1:8000"
+
+poll_interval_seconds: 2
+heartbeat_interval_seconds: 30
+batch_size: 200
+
+# Read offsets, so a restart resumes where it left off.
+state_file: "state.wazuh.json"
+
+watched_files:
+  - path: "/var/ossec/logs/alerts/alerts.json"
+    source_type: "WAZUH_ALERTS"
+
+# Windows events reach IntelliSOC through the Wazuh agents instead.
+windows_event_log:
+  enabled: false

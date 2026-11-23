@@ -45,7 +45,12 @@ def build_report_content(db: Session, incident: Incident) -> dict:
                 "status": inv.status,
                 "trace": inv.trace,
                 "threat_intelligence": inv.threat_intelligence,
-                "rag_sources": [{"title": s.get("title"), "source": s.get("source")} for s in inv.rag_sources],
+                "rag_sources": [
+                    {"id": s.get("id"), "title": s.get("title"), "source": s.get("source"), "page": s.get("page")}
+                    for s in inv.rag_sources
+                ],
+                # Knowledge the AI actually cited (verified against what it was given).
+                "ai_references": analysis.get("references", []),
                 "risk_score": inv.risk_score,
                 "risk_factors": inv.risk_factors,
                 "llm_available": inv.llm_available,

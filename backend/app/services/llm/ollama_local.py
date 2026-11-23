@@ -11,9 +11,9 @@ settings = get_settings()
 class OllamaLocalProvider(LLMProvider):
     name = "ollama_local"
 
-    def __init__(self) -> None:
+    def __init__(self, model: str | None = None) -> None:
         self.base_url = settings.OLLAMA_BASE_URL
-        self.model = settings.OLLAMA_MODEL
+        self.model = model or settings.OLLAMA_MODEL
         self.timeout = settings.OLLAMA_TIMEOUT
         self.temperature = settings.OLLAMA_TEMPERATURE
 
@@ -22,8 +22,11 @@ class OllamaLocalProvider(LLMProvider):
             resp = httpx.get(f"{self.base_url}/api/tags", timeout=5)
             if resp.status_code != 200:
                 return False
-            models = [m.get("name", "") for m in resp.json().get("models", [])]
-            return any(self.model.split(":")[0] in m for m in models)
+            models = {m.get("name", "") for m in resp.json().get("models", [])}
+            # Exact match: "gemma4:4b" must not count as present just because
+            # "gemma4:latest" is installed - generation would 404.
+            wanted = self.model if ":" in self.model else f"{self.model}:latest"
+            return wanted in models
         except httpx.HTTPError:
             return False
 

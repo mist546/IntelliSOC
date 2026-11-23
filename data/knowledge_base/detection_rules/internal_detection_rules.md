@@ -12,16 +12,22 @@ the system's actual logic rather than guessing.
 
 ## SSH_BRUTE_FORCE
 Triggers when a single source IP produces 10 or more `AUTH_FAILURE` events
-against SSH within a 5-minute window (both thresholds are configurable).
-Severity: HIGH. Evidence includes the failure count, the time window, and
-the usernames targeted.
+within a 5-minute window (both thresholds are configurable). Severity: HIGH.
+Evidence includes the failure count, the time window, and the usernames
+targeted. The same rule covers Windows Security exports: failed logons
+(event ID 4625) are normalized to `AUTH_FAILURE` and the alert is then
+titled "Windows logon Brute Force" instead of "SSH Brute Force". Maps to
+MITRE T1110 (T1110.001 password guessing when one account is targeted,
+T1110.003 password spraying when many accounts each receive a few attempts).
 
 ## FAILED_THEN_SUCCESS
 Triggers when a source IP has 3 or more failed authentication attempts
 immediately followed by a successful authentication from the same IP within
 the same 5-minute window. Severity: HIGH, or CRITICAL if the failure count
 also meets the brute-force threshold (10+). This pattern is a strong
-indicator that a brute-force attempt actually succeeded.
+indicator that a brute-force attempt actually succeeded. Applies to both
+Linux `auth.log` ("Accepted password") and Windows Security exports (event
+ID 4624 after a burst of 4625). Maps to MITRE T1078 (Valid Accounts).
 
 ## EXCESSIVE_AUTH_FAILURES
 Triggers when a single username accumulates 15 or more failed authentication

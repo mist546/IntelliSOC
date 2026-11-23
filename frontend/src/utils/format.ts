@@ -1,6 +1,14 @@
+// The backend stores and serializes timestamps as naive UTC (no "Z"/offset);
+// JS would otherwise parse those as local time and shift every display.
+const NAIVE_DATETIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/
+
+export function parseServerDate(value: string): Date {
+  return new Date(NAIVE_DATETIME.test(value) ? `${value}Z` : value)
+}
+
 export function formatDateTime(value: string | null | undefined): string {
   if (!value) return '—'
-  const d = new Date(value)
+  const d = parseServerDate(value)
   if (Number.isNaN(d.getTime())) return value
   return d.toLocaleString(undefined, {
     year: 'numeric',
@@ -14,7 +22,7 @@ export function formatDateTime(value: string | null | undefined): string {
 
 export function formatDate(value: string | null | undefined): string {
   if (!value) return '—'
-  const d = new Date(value)
+  const d = parseServerDate(value)
   if (Number.isNaN(d.getTime())) return value
   return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: '2-digit' })
 }

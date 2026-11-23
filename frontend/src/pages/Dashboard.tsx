@@ -160,7 +160,7 @@ export default function Dashboard() {
                   >
                     INV-{inv.id.slice(0, 8)}
                   </Link>
-                  <span className="truncate text-slate-500">Alert #{inv.alert_id}</span>
+                  <span className="truncate text-slate-500">{inv.alert_id ? `Alert #${inv.alert_id}` : '—'}</span>
                   <StatusBadge status={inv.status} />
                   <span className="text-slate-400">{inv.risk_score ?? '—'}</span>
                   <span className="whitespace-nowrap text-xs text-slate-500">{formatDateTime(inv.created_at)}</span>

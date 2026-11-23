@@ -1,0 +1,2 @@
+# Shell scripts run inside Linux VMs; CRLF line endings break bash.
+*.sh text eol=lf

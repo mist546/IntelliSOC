@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import { PageHeader } from '../components/PageHeader'
 import { Card } from '../components/Card'
 import { InlineSpinner } from '../components/LoadingSpinner'
@@ -7,15 +8,30 @@ import { SortableTh } from '../components/SortableTh'
 import { TableSkeleton } from '../components/TableSkeleton'
 import { CopyButton } from '../components/CopyButton'
 import { useAuth } from '../hooks/useAuth'
-import type { AgentRegisterResponse, CollectorAgent } from '../types'
-import { getAgents, getApiErrorMessage, registerAgent } from '../services/api'
+import type { AgentConnectionStatus, AgentRegisterResponse, CollectorAgent } from '../types'
+import { deleteAgent, getAgents, getApiErrorMessage, registerAgent } from '../services/api'
 import { formatDateTime } from '../utils/format'
 import { useToast } from '../hooks/useToast'
+import { useConfirm } from '../hooks/useConfirm'
 import { useSortableData } from '../hooks/useSortableData'
+import { useLiveEvent } from '../hooks/useLiveEvents'
+import { usePolling } from '../hooks/usePolling'
+
+// Online/stale/offline is worked out from time since the last heartbeat,
+// so the list is also re-read periodically to let quiet agents age out.
+const REFRESH_MS = 20000
+
+const CONNECTION_STYLES: Record<AgentConnectionStatus, string> = {
+  ONLINE: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400',
+  STALE: 'border-amber-500/40 bg-amber-500/10 text-amber-400',
+  OFFLINE: 'border-red-500/40 bg-red-500/10 text-red-400',
+  NEVER_SEEN: 'border-slate-600/40 bg-slate-600/10 text-slate-400',
+}
 
 export default function Agents() {
   const { user } = useAuth()
   const toast = useToast()
+  const confirm = useConfirm()
   const isAdmin = user?.role === 'ADMIN'
 
   const [agents, setAgents] = useState<CollectorAgent[]>([])
@@ -28,6 +44,7 @@ export default function Agents() {
   const [registering, setRegistering] = useState(false)
   const [registerError, setRegisterError] = useState<string | null>(null)
   const [newAgent, setNewAgent] = useState<AgentRegisterResponse | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   function load() {
     setLoading(true)
@@ -39,6 +56,13 @@ export default function Agents() {
   }
 
   useEffect(load, [])
+
+  // Background refresh: no loading skeleton, keep the current list on error.
+  function refreshQuietly() {
+    getAgents().then(setAgents).catch(() => undefined)
+  }
+  useLiveEvent(['agent.heartbeat', 'agent.deleted', 'logs.ingested'], refreshQuietly)
+  usePolling(refreshQuietly, REFRESH_MS, true)
 
   async function handleRegister(e: FormEvent) {
     e.preventDefault()
@@ -60,6 +84,28 @@ export default function Agents() {
     }
   }
 
+  async function handleDelete(agent: CollectorAgent) {
+    const ok = await confirm({
+      title: `Delete agent "${agent.name}"?`,
+      message:
+        "Its API key is revoked immediately, so the collector on that host can no longer send logs or heartbeats. Logs it already shipped are kept.",
+      confirmLabel: 'Delete agent',
+      tone: 'danger',
+    })
+    if (!ok) return
+    setDeletingId(agent.id)
+    try {
+      await deleteAgent(agent.id)
+      setAgents((prev) => prev.filter((a) => a.id !== agent.id))
+      if (newAgent?.id === agent.id) setNewAgent(null)
+      toast.success(`Agent "${agent.name}" deleted`)
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to delete agent.'))
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   const filteredAgents = useMemo(() => {
     const q = search.trim().toLowerCase()
     if (!q) return agents
@@ -70,6 +116,7 @@ export default function Agents() {
     name: (a) => a.name.toLowerCase(),
     hostname: (a) => a.hostname.toLowerCase(),
     is_active: (a) => (a.is_active ? 1 : 0),
+    connection_status: (a) => ['ONLINE', 'STALE', 'OFFLINE', 'NEVER_SEEN'].indexOf(a.connection_status),
     last_seen_at: (a) => (a.last_seen_at ? new Date(a.last_seen_at).getTime() : 0),
     created_at: (a) => new Date(a.created_at).getTime(),
   })
@@ -134,7 +181,7 @@ export default function Agents() {
 
       {!isAdmin && (
         <div className="mb-6">
-          <WarningBanner title="Admin only" message="Only ADMIN users can register new collector agents." />
+          <WarningBanner title="Admin only" message="Only ADMIN users can register or delete collector agents." />
         </div>
       )}
 
@@ -150,7 +197,7 @@ export default function Agents() {
         </div>
 
         {loading ? (
-          <TableSkeleton columns={5} />
+          <TableSkeleton columns={isAdmin ? 7 : 6} />
         ) : error ? (
           <ErrorBanner message={error} onRetry={load} />
         ) : agents.length === 0 ? (
@@ -164,9 +211,11 @@ export default function Agents() {
                 <tr className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-500">
                   <SortableTh label="Name" sortKey="name" activeKey={sortKey} direction={sortDir} onSort={requestSort} />
                   <SortableTh label="Hostname" sortKey="hostname" activeKey={sortKey} direction={sortDir} onSort={requestSort} />
+                  <SortableTh label="Connection" sortKey="connection_status" activeKey={sortKey} direction={sortDir} onSort={requestSort} />
                   <SortableTh label="Active" sortKey="is_active" activeKey={sortKey} direction={sortDir} onSort={requestSort} />
                   <SortableTh label="Last Seen" sortKey="last_seen_at" activeKey={sortKey} direction={sortDir} onSort={requestSort} />
                   <SortableTh label="Registered" sortKey="created_at" activeKey={sortKey} direction={sortDir} onSort={requestSort} />
+                  {isAdmin && <th className="px-3 py-2" aria-label="Actions" />}
                 </tr>
               </thead>
               <tbody>
@@ -174,6 +223,15 @@ export default function Agents() {
                   <tr key={agent.id} className="border-b border-slate-900 hover:bg-slate-800/40">
                     <td className="px-3 py-2 text-slate-200">{agent.name}</td>
                     <td className="px-3 py-2 font-mono-ids text-slate-400">{agent.hostname}</td>
+                    <td className="px-3 py-2">
+                      <span
+                        className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-semibold ${
+                          CONNECTION_STYLES[agent.connection_status] ?? CONNECTION_STYLES.NEVER_SEEN
+                        }`}
+                      >
+                        {(agent.connection_status ?? 'NEVER_SEEN').replace('_', ' ')}
+                      </span>
+                    </td>
                     <td className="px-3 py-2">
                       <span
                         className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-semibold ${
@@ -187,6 +245,19 @@ export default function Agents() {
                     </td>
                     <td className="px-3 py-2 text-xs text-slate-500">{formatDateTime(agent.last_seen_at)}</td>
                     <td className="px-3 py-2 text-xs text-slate-500">{formatDateTime(agent.created_at)}</td>
+                    {isAdmin && (
+                      <td className="px-3 py-2 text-right">
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(agent)}
+                          disabled={deletingId === agent.id}
+                          title="Delete this agent"
+                          className="rounded p-1 text-slate-500 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
+                        >
+                          {deletingId === agent.id ? <InlineSpinner /> : <Trash2 className="h-3.5 w-3.5" />}
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

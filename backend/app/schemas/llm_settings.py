@@ -18,3 +18,10 @@ class LLMSettingsUpdate(BaseModel):
     ollama_cloud_model: str | None = None
     ollama_cloud_base_url: str | None = None
     ollama_cloud_api_key: str | None = None
+
+
+class AIStatusOut(BaseModel):
+    provider: str
+    model: str
+    embedding_model: str
+    reachable: bool

@@ -25,6 +25,18 @@ class InvestigationOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class InvestigationSummaryOut(BaseModel):
+    id: str
+    alert_id: str | None
+    incident_id: str | None
+    status: str
+    risk_score: float | None
+    created_at: datetime
+    completed_at: datetime | None
+
+    model_config = {"from_attributes": True}
+
+
 class InvestigationTraceOut(BaseModel):
     id: str
     status: str

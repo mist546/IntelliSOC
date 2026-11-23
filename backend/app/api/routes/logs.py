@@ -5,9 +5,10 @@ from app.api.dependencies import get_current_agent, get_current_user
 from app.config import get_settings
 from app.database import get_db
 from app.models.log_event import LogEvent
-from app.schemas.agent import EventBatch
+from app.schemas.agent import EventBatch, WazuhAlertBatch
 from app.schemas.log_event import LogEventCreate, LogEventOut, LogUploadResult
-from app.services.ingestion.log_ingestion import ingest_normalized_events, ingest_raw_log
+from app.services.ingestion.log_ingestion import ingest_normalized_events, ingest_parsed_events, ingest_raw_log
+from app.services.parsing.wazuh import parse_wazuh_alert
 from app.utils.logging import get_logger
 from app.utils.time import utc_now
 
@@ -70,12 +71,34 @@ def ingest_events(
     }
 
 
+@router.post("/events/wazuh", status_code=status.HTTP_201_CREATED)
+def ingest_wazuh_alerts(
+    batch: WazuhAlertBatch,
+    db: Session = Depends(get_db),
+    agent=Depends(get_current_agent),
+):
+    """Receives raw Wazuh alerts forwarded by the soc-agent bridge running on
+    the Wazuh manager (see docs/setup.md, "Collecting logs with Wazuh")."""
+    parsed = [event for event in (parse_wazuh_alert(alert) for alert in batch.alerts) if event]
+
+    agent.last_seen_at = utc_now()
+    result = ingest_parsed_events(db, parsed, source=agent.name, agent_id=agent.id)
+    return {
+        "events_created": result.events_created,
+        "alerts_created": result.alerts_created,
+        "incidents_created": result.incidents_created,
+        "skipped": len(batch.alerts) - len(parsed),
+    }
+
+
 @router.get("/logs", response_model=list[LogEventOut])
 def list_logs(
     skip: int = 0,
     limit: int = Query(default=100, le=500),
     source_ip: str | None = None,
     event_type: str | None = None,
+    source_type: str | None = None,
+    wazuh: bool | None = Query(default=None, description="true: only events that arrived through Wazuh"),
     db: Session = Depends(get_db),
     _user=Depends(get_current_user),
 ):
@@ -84,6 +107,11 @@ def list_logs(
         query = query.filter(LogEvent.source_ip == source_ip)
     if event_type:
         query = query.filter(LogEvent.event_type == event_type)
+    if source_type:
+        query = query.filter(LogEvent.source_type == source_type)
+    if wazuh:
+        # The Wazuh parser keeps its context under metadata["wazuh"].
+        query = query.filter(LogEvent.metadata_.like('%"wazuh":%'))
     return query.order_by(LogEvent.timestamp.desc()).offset(skip).limit(limit).all()
 
 

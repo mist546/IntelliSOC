@@ -9,8 +9,18 @@
 data/*.db
 data/reports/*.pdf
 rag/chroma_db/
+# Knowledge base material fetched by scripts/download_knowledge_base.ps1 (re-downloadable)
+data/knowledge_base/mitre_attack/
+data/knowledge_base/nist/
+data/knowledge_base/owasp/
+data/knowledge_base/threat_intel/
+data/knowledge_base/hardening/
+data/knowledge_base/vulnerability_knowledge/cwe/
+data/knowledge_base/detection_rules/sigma/
 backend/uvicorn.log
 soc-agent/state.json
+soc-agent/windows_state.json
+data/live_logs/
 
 # Frontend
 frontend/node_modules/

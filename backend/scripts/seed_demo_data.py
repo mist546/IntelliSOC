@@ -42,8 +42,9 @@ def ingest_sample_logs(db) -> None:
     if not SAMPLE_LOGS_DIR.exists():
         print(f"Sample logs directory not found: {SAMPLE_LOGS_DIR}")
         return
-    for path in sorted(SAMPLE_LOGS_DIR.glob("*.log")):
-        content = path.read_text()
+    sample_files = sorted(SAMPLE_LOGS_DIR.glob("*.log")) + sorted(SAMPLE_LOGS_DIR.glob("*.json"))
+    for path in sample_files:
+        content = path.read_text(encoding="utf-8")
         result = ingest_raw_log(db, content=content, filename=path.name)
         print(
             f"  {path.name}: {result.events_created} events, "

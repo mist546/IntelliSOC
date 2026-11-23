@@ -52,10 +52,6 @@ export default function Settings() {
 
   async function handleSaveLlm() {
     if (!provider) return
-    if (provider === 'ollama_cloud' && !llmSettings?.ollama_cloud_api_key_configured && !cloudApiKey.trim()) {
-      toast.error('Set an Ollama Cloud API key before switching to the cloud provider.')
-      return
-    }
     try {
       await updateLlm.mutateAsync({
         provider,
@@ -69,6 +65,16 @@ export default function Settings() {
       toast.success('AI model provider updated.')
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Failed to update AI model provider.'))
+    }
+  }
+
+  async function handleRemoveCloudKey() {
+    try {
+      await updateLlm.mutateAsync({ ollama_cloud_api_key: '' })
+      setCloudApiKey('')
+      toast.success('API key removed - cloud models now run through the local Ollama.')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to remove the API key.'))
     }
   }
 
@@ -116,7 +122,12 @@ export default function Settings() {
                     <WifiOff className="h-3 w-3" /> Unreachable
                   </span>
                 )}
-                <span className="text-slate-500">Active provider: {llmSettings.provider === 'ollama_cloud' ? 'Ollama Cloud' : 'Ollama Local'}</span>
+                <span className="text-slate-500">
+                  Active: {llmSettings.provider === 'ollama_cloud' ? 'Cloud' : 'Local'} &middot;{' '}
+                  <span className="font-mono-ids text-slate-400">
+                    {llmSettings.provider === 'ollama_cloud' ? llmSettings.ollama_cloud_model : llmSettings.ollama_model}
+                  </span>
+                </span>
               </div>
 
               <div className="mb-4 grid grid-cols-2 gap-2">
@@ -131,7 +142,8 @@ export default function Settings() {
                   }`}
                 >
                   <Server className="h-4 w-4" />
-                  Local (Ollama)
+                  Local
+                  <span className="font-mono-ids text-[11px] font-normal text-slate-500">{localModel || '—'}</span>
                 </button>
                 <button
                   type="button"
@@ -144,44 +156,75 @@ export default function Settings() {
                   }`}
                 >
                   <Cloud className="h-4 w-4" />
-                  Cloud (Ollama Cloud)
+                  Cloud
+                  <span className="font-mono-ids text-[11px] font-normal text-slate-500">{cloudModel || '—'}</span>
                 </button>
               </div>
 
               {provider === 'ollama_local' ? (
                 <div className="space-y-2">
+                  <p className="text-xs text-slate-500">Runs fully offline on this machine's Ollama.</p>
                   <div>
                     <label className="mb-1 block text-xs font-medium text-slate-400">Model</label>
                     <input value={localModel} onChange={(e) => setLocalModel(e.target.value)} disabled={!isAdmin} className={inputClass} />
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-400">Base URL</label>
+                    <label className="mb-1 block text-xs font-medium text-slate-400">Ollama URL</label>
                     <input value={localBaseUrl} onChange={(e) => setLocalBaseUrl(e.target.value)} disabled={!isAdmin} className={`${inputClass} font-mono-ids`} />
                   </div>
                 </div>
               ) : (
                 <div className="space-y-2">
+                  <p className="text-xs text-slate-500">
+                    {llmSettings.ollama_cloud_api_key_configured ? (
+                      <>Calls the cloud model directly on ollama.com with the API key below.</>
+                    ) : (
+                      <>
+                        Runs the cloud model through the local Ollama at{' '}
+                        <span className="font-mono-ids text-slate-400">{llmSettings.ollama_base_url}</span> using its{' '}
+                        <code className="font-mono-ids text-slate-400">ollama signin</code> session.
+                      </>
+                    )}
+                  </p>
                   <div>
                     <label className="mb-1 block text-xs font-medium text-slate-400">Model</label>
                     <input value={cloudModel} onChange={(e) => setCloudModel(e.target.value)} disabled={!isAdmin} className={inputClass} />
                   </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-400">Base URL</label>
-                    <input value={cloudBaseUrl} onChange={(e) => setCloudBaseUrl(e.target.value)} disabled={!isAdmin} className={`${inputClass} font-mono-ids`} />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-400">
-                      API Key {llmSettings.ollama_cloud_api_key_configured && <span className="text-emerald-400">(configured)</span>}
-                    </label>
-                    <input
-                      type="password"
-                      value={cloudApiKey}
-                      onChange={(e) => setCloudApiKey(e.target.value)}
-                      disabled={!isAdmin}
-                      placeholder={llmSettings.ollama_cloud_api_key_configured ? 'Leave blank to keep current key' : 'Paste your ollama.com API key'}
-                      className={inputClass}
-                    />
-                  </div>
+                  <details className="rounded-md border border-slate-800 px-3 py-2" open={llmSettings.ollama_cloud_api_key_configured}>
+                    <summary className="cursor-pointer text-xs font-medium text-slate-400">Advanced: direct API instead of the local Ollama</summary>
+                    <p className="mt-2 text-xs text-slate-500">
+                      Optional. With a REST key from ollama.com/settings/keys, requests skip the local Ollama entirely. Model
+                      names then drop the <code className="font-mono-ids">-cloud</code> suffix (e.g.{' '}
+                      <code className="font-mono-ids">gpt-oss:120b</code>).
+                    </p>
+                    <div className="mt-2">
+                      <label className="mb-1 block text-xs font-medium text-slate-400">API Base URL</label>
+                      <input value={cloudBaseUrl} onChange={(e) => setCloudBaseUrl(e.target.value)} disabled={!isAdmin} className={`${inputClass} font-mono-ids`} />
+                    </div>
+                    <div className="mt-2">
+                      <label className="mb-1 block text-xs font-medium text-slate-400">
+                        API Key {llmSettings.ollama_cloud_api_key_configured && <span className="text-emerald-400">(configured)</span>}
+                      </label>
+                      <input
+                        type="password"
+                        value={cloudApiKey}
+                        onChange={(e) => setCloudApiKey(e.target.value)}
+                        disabled={!isAdmin}
+                        placeholder={llmSettings.ollama_cloud_api_key_configured ? 'Leave blank to keep current key' : 'Not set - uses the local Ollama'}
+                        className={inputClass}
+                      />
+                      {isAdmin && llmSettings.ollama_cloud_api_key_configured && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveCloudKey}
+                          disabled={updateLlm.isPending}
+                          className="mt-2 text-xs font-medium text-red-400 hover:underline disabled:opacity-50"
+                        >
+                          Remove key and use the local Ollama
+                        </button>
+                      )}
+                    </div>
+                  </details>
                 </div>
               )}
 

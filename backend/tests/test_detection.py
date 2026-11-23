@@ -127,3 +127,26 @@ def test_sensitive_file_access_detected(db_session):
     )
     alerts = run_detection(db_session, [event])
     assert any(a.detection_rule == "SENSITIVE_FILE_ACCESS" for a in alerts)
+
+
+def test_windows_logon_failures_trigger_brute_force_and_failed_then_success(db_session):
+    """Windows Security export -> same brute-force rules as auth.log."""
+    from pathlib import Path
+
+    from app.services.ingestion.log_ingestion import ingest_raw_log
+
+    sample = Path(__file__).resolve().parent.parent.parent / "data" / "sample_logs" / "windows_security_events.json"
+    result = ingest_raw_log(db_session, content=sample.read_text(), filename="windows_security_events.json")
+    assert result.source_type == "WINDOWS_EVENT"
+    assert result.events_created == 15
+
+    from app.models.alert import Alert
+
+    alerts = db_session.query(Alert).all()
+    rules = {a.detection_rule: a for a in alerts}
+    assert "SSH_BRUTE_FORCE" in rules and "FAILED_THEN_SUCCESS" in rules
+    assert rules["SSH_BRUTE_FORCE"].title.startswith("Windows logon Brute Force")
+    assert rules["SSH_BRUTE_FORCE"].source_ip == "198.51.100.77"
+    assert rules["FAILED_THEN_SUCCESS"].severity == "CRITICAL"  # 12 failures >= threshold of 10
+    assert rules["FAILED_THEN_SUCCESS"].username == "Administrator"
+    assert all(a.incident_id for a in alerts)

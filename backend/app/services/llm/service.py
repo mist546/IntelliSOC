@@ -18,7 +18,8 @@ SYSTEM_PROMPT = """You are a Tier-1 SOC (Security Operations Center) investigati
 You will be given evidence gathered by deterministic tools, clearly labeled by category:
 - EVIDENCE: what the system directly observed in logs. This is ground truth.
 - THREAT_INTELLIGENCE: information from threat intel providers about indicators (IPs, domains).
-- KNOWLEDGE: reference material retrieved from a security knowledge base (OWASP, MITRE, CWE, playbooks).
+- KNOWLEDGE: reference material retrieved from a security knowledge base (investigation and response
+  playbooks, MITRE ATT&CK, OWASP, NIST, CWE). Every item has an id such as [K1].
 - RISK: a deterministic risk score already computed by a separate risk engine.
 
 Your job is to analyze this evidence and produce a structured JSON assessment.
@@ -37,7 +38,10 @@ STRICT RULES - you must follow these exactly:
 6. Be CONCISE so the full response fits a limited token budget: "summary" max 2 sentences, "evidence"
    at most 4 short bullet points, "recommended_actions" at most 5 short bullet points, "threat_context"
    and "impact" one sentence each.
-7. Respond with ONLY a single valid JSON object matching this exact schema, no markdown, no commentary:
+7. In "references", list the [K] ids of the KNOWLEDGE items your analysis and recommended actions are
+   based on (e.g. ["K1", "K4"]). Only cite ids that appear above; never invent sources. Prefer the
+   RESPONSE_PLAYBOOK items when recommending actions.
+8. Respond with ONLY a single valid JSON object matching this exact schema, no markdown, no commentary:
 
 {
   "attack_type": "string - short name of the attack/activity type",
@@ -51,14 +55,20 @@ STRICT RULES - you must follow these exactly:
   "owasp_category": "e.g. A07:2021, or null",
   "recommended_actions": ["specific recommended response actions, never phrased as already done"],
   "requires_human_approval": true,
-  "insufficient_evidence": false
+  "insufficient_evidence": false,
+  "references": ["K ids of the knowledge items used, e.g. K1"]
 }
 """
 
 
 def _get_provider():
     if settings.LLM_PROVIDER == "ollama_cloud":
-        return OllamaCloudProvider()
+        # With a REST API key, call ollama.com directly. Otherwise run the
+        # cloud model (e.g. gpt-oss:120b-cloud) through the local daemon,
+        # which forwards it using the `ollama signin` session.
+        if settings.OLLAMA_CLOUD_API_KEY:
+            return OllamaCloudProvider()
+        return OllamaLocalProvider(model=settings.OLLAMA_CLOUD_MODEL)
     return OllamaLocalProvider()
 
 

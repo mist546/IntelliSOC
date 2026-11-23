@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user
@@ -6,6 +6,7 @@ from app.database import get_db
 from app.models.alert import Alert
 from app.schemas.alert import AlertOut, AlertStatusUpdate
 from app.schemas.investigation import InvestigateRequest, InvestigationOut
+from app.services.live_events import publish_event
 
 router = APIRouter(prefix="/api/alerts", tags=["alerts"])
 
@@ -53,24 +54,33 @@ def update_alert_status(
     alert.status = new_status
     db.commit()
     db.refresh(alert)
+    publish_event("alert.updated", {"id": alert.id, "status": alert.status})
     return alert
 
 
 @router.post("/{alert_id}/investigate", response_model=InvestigationOut)
 def investigate_alert(
     alert_id: str,
+    background_tasks: BackgroundTasks,
     payload: InvestigateRequest = InvestigateRequest(),
     db: Session = Depends(get_db),
     _user=Depends(get_current_user),
 ):
-    from app.agents.investigator import investigate_alert as run_investigation
+    """Starts an AI investigation and returns it immediately with status
+    RUNNING. The investigation continues in the background; its trace fills
+    in step by step (GET /api/investigations/{id}, or live via /api/stream)."""
+    from app.agents.investigator import run_investigation_job, start_investigation
 
     alert = db.query(Alert).filter(Alert.id == alert_id).first()
     if not alert:
         raise HTTPException(status_code=404, detail="Alert not found")
 
-    investigation = run_investigation(db, alert, force=payload.force)
+    investigation, created = start_investigation(db, alert)
+    if created:
+        background_tasks.add_task(run_investigation_job, db.get_bind(), investigation.id)
     if alert.status == "NEW":
         alert.status = "INVESTIGATING"
         db.commit()
+        publish_event("alert.updated", {"id": alert.id, "status": alert.status})
+    db.refresh(investigation)
     return investigation

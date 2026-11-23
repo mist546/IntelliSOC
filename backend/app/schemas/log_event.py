@@ -1,6 +1,7 @@
+import json
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 
 class LogEventCreate(BaseModel):
@@ -33,8 +34,22 @@ class LogEventOut(BaseModel):
     status: str | None
     message: str
     raw_log: str
+    # Parser-specific context, e.g. metadata["wazuh"] (rule, level, MITRE IDs,
+    # agent) for events that arrived through a Wazuh manager. Stored as JSON
+    # text in the "metadata" column (LogEvent.metadata_).
+    metadata: dict | None = Field(default=None, validation_alias="metadata_")
 
     model_config = {"from_attributes": True}
+
+    @field_validator("metadata", mode="before")
+    @classmethod
+    def _decode_metadata(cls, value):
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except json.JSONDecodeError:
+                return None
+        return value if isinstance(value, dict) else None
 
 
 class LogUploadResult(BaseModel):

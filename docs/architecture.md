@@ -52,6 +52,7 @@ services/
   risk/                    Deterministic risk engine + supplementary ML anomaly detector
   scanning/                OWASP-focused website scanner (SSRF-guarded)
   reporting/               Report content builder + PDF renderer
+  live_events.py           In-process publish/subscribe for the SSE live stream
 agents/investigator.py  The ONE agentic investigation orchestrator
 tools/                   Individual tool functions the orchestrator calls
 ```
@@ -88,9 +89,24 @@ changes (see `docs/setup.md`).
 
 ## Frontend
 
-React + Vite + TypeScript + Tailwind CSS, talking to the backend purely
-over the REST API described in `docs/api.md`, authenticating with a JWT
-bearer token stored client-side.
+React + Vite + TypeScript + Tailwind CSS, talking to the backend over the
+REST API described in `docs/api.md`, authenticating with a JWT bearer
+token stored client-side. While logged in, `hooks/useLiveEvents.tsx` keeps
+one Server-Sent Events connection open (`/api/stream`): each pushed event
+invalidates the affected React Query caches so pages refresh within a
+second, HIGH/CRITICAL alerts raise a toast, and the top bar shows
+Live/Reconnecting. Periodic polling remains as a fallback.
+
+## Real-time data flow
+
+```
+simulate_attack.py / real sshd / Windows Security log
+   -> soc-agent (2 s poll, heartbeat every 30 s) -> POST /api/events
+   -> parse/detect/correlate -> commit -> publish_event(...)
+   -> GET /api/stream (SSE) -> browser invalidates queries + toast
+Investigate -> RUNNING returned at once -> background job
+   -> each trace step committed + published -> live timeline
+```
 
 ## Security boundaries
 

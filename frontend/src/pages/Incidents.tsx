@@ -12,6 +12,7 @@ import type { Incident } from '../types'
 import { getApiErrorMessage, getIncidents } from '../services/api'
 import { formatDateTime } from '../utils/format'
 import { usePolling } from '../hooks/usePolling'
+import { useLiveEvent } from '../hooks/useLiveEvents'
 import { useSortableData } from '../hooks/useSortableData'
 import { useToast } from '../hooks/useToast'
 
@@ -65,6 +66,11 @@ export default function Incidents() {
 
   useEffect(() => load(true), [load])
   usePolling(() => load(false), POLL_INTERVAL_MS, live)
+  // This page fetches outside React Query, so live events must trigger the
+  // reload directly rather than through query invalidation.
+  useLiveEvent(['incident.updated', 'investigation.completed'], () => {
+    if (live) load(false)
+  })
 
   useEffect(() => {
     return () => {

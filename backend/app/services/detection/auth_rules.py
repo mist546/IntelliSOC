@@ -10,6 +10,14 @@ from app.services.detection.base import AlertDraft
 
 settings = get_settings()
 
+# Sources whose AUTH_FAILURE / AUTH_SUCCESS events represent interactive or
+# network logons and therefore feed the brute-force rules.
+AUTH_SOURCE_TYPES = ("AUTH_LOG", "WINDOWS_EVENT")
+
+
+def _auth_label(source_type: str) -> str:
+    return "Windows logon" if source_type == "WINDOWS_EVENT" else "SSH"
+
 
 def _failures_in_window(db: Session, source_ip: str, end_time, window_minutes: int) -> list[LogEvent]:
     start_time = end_time - timedelta(minutes=window_minutes)
@@ -36,7 +44,7 @@ def detect_ssh_brute_force(db: Session, new_events: list[LogEvent]) -> list[Aler
     candidate_ips = {
         e.source_ip
         for e in new_events
-        if e.event_type == "AUTH_FAILURE" and e.source_ip and e.source_type == "AUTH_LOG"
+        if e.event_type == "AUTH_FAILURE" and e.source_ip and e.source_type in AUTH_SOURCE_TYPES
     }
 
     for ip in candidate_ips:
@@ -48,18 +56,19 @@ def detect_ssh_brute_force(db: Session, new_events: list[LogEvent]) -> list[Aler
             continue
 
         usernames = sorted({f.username for f in failures if f.username})
+        label = _auth_label(failures[-1].source_type)
         drafts.append(
             AlertDraft(
-                title=f"SSH Brute Force from {ip}",
+                title=f"{label} Brute Force from {ip}",
                 severity="HIGH",
                 confidence=min(0.99, 0.6 + 0.01 * len(failures)),
                 detection_rule="SSH_BRUTE_FORCE",
                 description=(
-                    f"{len(failures)} failed SSH authentication attempts from {ip} "
+                    f"{len(failures)} failed {label} authentication attempts from {ip} "
                     f"within a {window}-minute window."
                 ),
                 evidence=[
-                    f"{len(failures)} failed SSH authentication attempts observed",
+                    f"{len(failures)} failed {label} authentication attempts observed",
                     f"Same source IP ({ip}) observed repeatedly within {window} minutes",
                     f"Usernames targeted: {', '.join(usernames) if usernames else 'unknown'}",
                 ],
@@ -80,7 +89,7 @@ def detect_failed_then_success(db: Session, new_events: list[LogEvent]) -> list[
     min_failures = 3
 
     successes = [
-        e for e in new_events if e.event_type == "AUTH_SUCCESS" and e.source_ip and e.source_type == "AUTH_LOG"
+        e for e in new_events if e.event_type == "AUTH_SUCCESS" and e.source_ip and e.source_type in AUTH_SOURCE_TYPES
     ]
 
     for success in successes:

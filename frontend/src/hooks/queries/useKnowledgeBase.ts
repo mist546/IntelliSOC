@@ -1,5 +1,10 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { getKnowledgeDocuments, searchKnowledgeBase } from '../../services/knowledge'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  deleteKnowledgeDocument,
+  getKnowledgeDocuments,
+  searchKnowledgeBase,
+  uploadKnowledgeDocument,
+} from '../../services/knowledge'
 import { queryKeys } from './queryKeys'
 
 export function useKnowledgeSearch() {
@@ -8,14 +13,30 @@ export function useKnowledgeSearch() {
   })
 }
 
-// The document management API doesn't exist on the backend yet, so this
-// query is expected to fail until it does - callers should treat isError as
-// "not available", not surface it as an error banner.
 export function useKnowledgeDocuments() {
   return useQuery({
     queryKey: queryKeys.knowledgeDocuments,
     queryFn: getKnowledgeDocuments,
-    retry: false,
     refetchOnWindowFocus: false,
+  })
+}
+
+export function useUploadKnowledgeDocument() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (file: File) => uploadKnowledgeDocument(file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.knowledgeDocuments })
+    },
+  })
+}
+
+export function useDeleteKnowledgeDocument() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => deleteKnowledgeDocument(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.knowledgeDocuments })
+    },
   })
 }

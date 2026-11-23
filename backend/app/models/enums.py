@@ -44,4 +44,6 @@ class SourceType(str, enum.Enum):
     NGINX_ERROR = "NGINX_ERROR"
     CSV = "CSV"
     JSON = "JSON"
+    WINDOWS_EVENT = "WINDOWS_EVENT"
+    WAZUH = "WAZUH"
     UNKNOWN = "UNKNOWN"

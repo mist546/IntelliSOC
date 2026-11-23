@@ -8,14 +8,14 @@ import { ErrorBanner, EmptyState } from '../components/ErrorBanner'
 import { StatusBadge } from '../components/StatusBadge'
 import { getApiErrorMessage } from '../services/client'
 import { formatDateTime } from '../utils/format'
-import { useDashboardStats } from '../hooks/queries/useDashboard'
+import { useInvestigationsQuery } from '../hooks/queries/useInvestigation'
 import { getInvestigation } from '../services/investigations'
 import { useToast } from '../hooks/useToast'
 
 export default function Investigations() {
   const navigate = useNavigate()
   const toast = useToast()
-  const { data: stats, isLoading, isError, error, refetch } = useDashboardStats(true)
+  const { data: investigations, isLoading, isError, error, refetch } = useInvestigationsQuery(true)
   const [jumpId, setJumpId] = useState('')
   const [jumping, setJumping] = useState(false)
 
@@ -69,12 +69,12 @@ export default function Investigations() {
         </Card>
       </div>
 
-      <Card title="Recent Investigations">
+      <Card title="All Investigations">
         {isLoading ? (
           <div className="py-10 text-center text-sm text-slate-500">Loading...</div>
         ) : isError ? (
           <ErrorBanner message={getApiErrorMessage(error, 'Failed to load investigations.')} onRetry={() => refetch()} />
-        ) : stats?.recent_investigations && stats.recent_investigations.length > 0 ? (
+        ) : investigations && investigations.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
@@ -88,7 +88,7 @@ export default function Investigations() {
                 </tr>
               </thead>
               <tbody>
-                {stats.recent_investigations.map((inv) => (
+                {investigations.map((inv) => (
                   <tr
                     key={inv.id}
                     onClick={() => navigate(`/investigations/${inv.id}`)}
@@ -100,13 +100,17 @@ export default function Investigations() {
                       </span>
                     </td>
                     <td className="px-3 py-2">
-                      <Link
-                        to={`/alerts/${inv.alert_id}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-slate-300 hover:underline"
-                      >
-                        Alert #{inv.alert_id}
-                      </Link>
+                      {inv.alert_id ? (
+                        <Link
+                          to={`/alerts/${inv.alert_id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-slate-300 hover:underline"
+                        >
+                          Alert #{inv.alert_id}
+                        </Link>
+                      ) : (
+                        <span className="text-slate-500">—</span>
+                      )}
                     </td>
                     <td className="px-3 py-2 text-slate-400">{inv.incident_id ? `INC-${inv.incident_id}` : '—'}</td>
                     <td className="px-3 py-2">
